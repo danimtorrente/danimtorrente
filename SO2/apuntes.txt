@@ -1,7 +1,82 @@
 ARQUITECTURAS MODERNAS
 -Controlador i2c, Inter-integrated Circuit, se usa para touchpad, pantallas tactiles, teclados, sensores de huellas dactilares...
 -Los laptops usan para el keyboard normalmente el controlador i8042
+------------------------------------------------------------------------------------------------------------------------------------
+LINKERS (por ejemplo ld)
 
+-El linker combina varios archivos objeto (archivos ya compilados en binario) en un ejecutable, resuelve simbolos y 
+ ajusta las direcciones de memoria. Por ejemplo el archivo binario puede tener funciones que hagan referencia a bibliotecas 
+ externas, una de las cosas que el linker haria seria coger el trozo de codigo que se usa y integrarlo en el archivo ejecutable 
+ resultante
+
+ARCHIVO LDS
+
+-Un archivo lds define la ubicacion de las secciones del kernel en la memoria y controla detalles criticos sobre 
+ como se organiza el codigo y los datos. Aqui esta un ejemplo: 
+
+ENTRY(main)
+SECTIONS
+{
+	. = 0x10000; /* system code begins here */
+	.text.main :
+		{ BYTE(24); /* reserved to store user code management data */
+			*(.text.main) }
+	.text : {*(.text) }
+	.rodata : { *(.rodata) }
+	.data : { *(.data) } /* Initialized data */
+	.bss : { *(.bss) } /* Not initialized data */
+	. = ALIGN(4096); /* task_structs array aligned to page */
+	.data.task : { *(.data.task) }
+}
+
+EXPLICACION:
+
+ENTRY--> Le dice al linker que el punto de entrada sera la funcion main
+SECTIONS--> Dentro de sections defines como quieres que se coloquen diferentes partes del programa en memoria.
+	-0x10000 (64kB)--> Indica que el codigo del programa comienza en esta direccion
+	-text.main --> subseccion de texto (donde se almacena el codigo) en la que se almacena la funcion main
+	-BYTE(24) --> reserva 24 bytes para almacenar datos relacionados con la gestion de codigo de usuario (puede ser usado por el
+		sistema operativo para guardar datos de control como punteros o descriptores)
+	-*(.text.main) --> Instruye al linker para colocar en esta sección cualquier código que esté en la sección .text.main 
+		de los archivos objeto.
+	-.text --> Seccion de codigo ejecutable del programa
+	-.rodata--> Read Only Data
+	-.data--> Datos inicializados como variables globales que ya tienen un valor o datos asi
+	-.bss--> Datos no inicializados
+	-. = ALIGN(4096)--> Alinea al tamaño de una pagina de 4 KB
+	-data.task--> Seccion para los datos relacionados con tareas (procesos o threads)
+
+--------------------------------------------------------------------------------------------------------------------------
+
+TASK_STRUCT ARRAY
+
+union task_union task[NR_TASKS] __attribute__((__section__(".data.task")));
+
+	-task_union--> Esto es una unión que el task_struct y otras posibles estructuras o datos asociados a las tareas.
+
+    task[NR_TASKS]--> Es un array de tamaño NR_TASKS (un número máximo de tareas predefinido). 
+	Cada elemento del array es una instancia de la unión task_union, que representa una tarea (proceso o hilo) en el sistema.
+
+    __attribute__((__section__(".data.task")))--> Esto indica al compilador que debe colocar este array en una sección especial 
+	de la memoria llamada .data.task. Esta sección está definida en el script del linker (.lds) y fue alineada a una 
+	página de memoria (4096 bytes) lo cual es importante en sistemas operativos para asegurar que las estructuras críticas 
+(como las de planificación de tareas) estén alineadas en la memoria para mejorar la eficiencia de acceso y el uso de la caché.
+
+TASK_STRUCT
+
+El task_struct es la estructura que contiene toda la información sobre un proceso o tarea, como:
+
+	-PID (Identificador del proceso)
+	-Estado de la tarea (corriendo, detenido, en espera, etc.)
+	-Punteros a los registros (para restaurar el contexto de la CPU cuando se programa la tarea)
+	-Dirección de memoria (dónde está cargado el proceso en la memoria)
+	-Contadores de tiempo (para la planificación por tiempos)
+	-Referencias a archivos abiertos, señales, etc.
+
+El array task[] contiene todas las tareas o procesos en el sistema. Es como una lista que el sistema operativo usa para hacer un 
+seguimiento de los procesos activos, programarlos, o eliminarlos.
+
+------------------------------------------------------------------------------------------------------------------------------------
 Llamadas a sistema:
 	-Gestion de Procesos:
 		-getpid
