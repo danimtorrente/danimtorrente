@@ -1,0 +1,119 @@
+ARQUITECTURAS MODERNAS
+-Controlador i2c, Inter-integrated Circuit, se usa para touchpad, pantallas tactiles, teclados, sensores de huellas dactilares...
+-Los laptops usan para el keyboard normalmente el controlador i8042
+
+Llamadas a sistema:
+	-Gestion de Procesos:
+		-getpid
+		-fork
+		-exit
+		-exec
+	-Gestion de Memoria:
+		-malloc
+		-free
+		-brk/sbrk
+	-I/O & filesystem
+		-open
+		-read
+		-write
+		-close
+		-lseek
+		-mknod
+	-Soporte para multithreads/multiprocess
+		-pthreads_*
+		-signal
+		-kill
+		-pipe
+		-socket
+		-sem_*
+		-clone
+
+AQUITECTURA (X86)
+
+     CPU Registers:
+                -ss (stack segment): apunta al segmento de la pila
+                -esp (extended stack pointer): contiene la direccion actual del tope de la pila
+                -psw (program status word o EFLAGS en x86): contiene flags que describen el estado actual 
+							    del procesador(overflow, zero...)
+                -cs (code segment): apunta al segmento de codigo en memoria, define donde esta el codigo que se ejecuta
+                -eip (extended instruction pointer): contiene la direccion de la proxima instruccion que sera ejecutada en la CPU
+
+        General Purpose Registers:
+                -EAX, EBX, ECX, EDX --> Proposito general, aunque cada uno se suele usar para una cosa diferente. En EAX se pone
+					el valor del resultado de una subrutina o interrupcion, 
+		-ESI-> Para manipulacion de datos en memoria. Apunta al origen de los datos en memoria
+		-EDI-> Para manipulacion de datos en memoria. Apunta el destino de los datos en memoria
+		-EBP-> Gestion de pila. Contiene la direccion base de la pila
+		-ESP-> Gestion de pila. Contiene la direccion tope de la pila
+------------------------------------------------------------------------------------------------------------------------------------
+MANEJO DE INTERRUPCIONES --> Salta una interrupcion, el procesador consulta la IDT para determinar la direccion del handler 
+correspondiente, cambio de contexo (el procesador guarda el estado actual del sistema (flags, registros...) en la pila, i cambia
+al modo de ejecucion del nivel de privilegio correspondiente), el procesador usa la GDT para conseguir el codigo y datos necesarios,
+se ejecuta el HANDLER, se restaura al contexto anterior y su nivel de privilegios, finalmente el procesador usa IRET (interrupt 
+return), que indica que hay que restaurar el puntero de la instruccion original.
+
+Interrupts--> Asynchronous, producido por otros dispositivos hardware de forma inesperada
+
+Exceptions--> Synchronous, interrupciones generadas por la CPU despues de terminar una instruccion
+
+Systemcalls--> Synchronous, lo causa una instruccion de assembler. Es una llamada al kernel des de un programa de usuario para 
+	       ejecutar una intruccion de sistema que solo puede ejecutar el kernel. En los pc mas antiguos se usa int, en los
+	       mas modernos se usa sysenter.
+
+	-int --> Abreviatura de interrupt, se usa int + entrada IDT. Por lo general es int 0x80. Luego en los diferentes 
+		registros se guardan valores necesarios:
+			-EAX-> Especifica el tipo de funcion del kernel que se hara (read, write...)
+			-EBX-> Descriptor de archivo (0;stdin(teclado), 1;stdout(pantalla), 2;stderr(error))
+			-ECX-> Direccion del mensaje (¿suele ser la etiqueta msg?)
+			-EDX-> Longitud del mensaje
+
+	-Sysenter/sysexit--> Mecanismo de gestion de interrupciones que se salta el vector de interrupciones (IDT).
+		     Usa los siguientes registros:
+			-SYSENTER_CS_MSR--> Selector de segmento de codigo del kernel
+			-SYSENTER_EIP_MSR--> Contiene el entry point, la direccion de memoria donde comienza la ejecucion en el 
+					     kernel cuando se invoca sysenter
+			-SYSENTER_ESP_MSR--> Apunta a la base de la TSS (Task State Segment). Esta contiene informacion sobre el 
+					     estado de una tarea o proceso, incluyendo el puntero de la pila (ESP) del kernel.
+		     Cuando termina la ejecucion, se devuelve el control al usuario con la instruccion sysexit
+
+IDT (Interrupt Descriptor table) --> Cada entrada tiene un puntero al handler, un nivel de privilegio minimo necesario
+	-256 entradas: 
+		-0-31 Excepciones (generadas por la cpu, cuando se divide entre cero o cosas asi)
+		-32-47 Masked/hardware Interrupts (interrupciones hardware, se las llama masked porque si llegan en un momento 
+			critico, se enmascaran/deshabilitan temporalmente hasta que se puedan tratar)
+		-48-255 Software Interrupts (un programa que contenga llamadas a sistema)
+
+GDT (Global Descriptor table) --> Contiene descriptores de segmentos de codigo en memoria. Su direccion, 
+					   tamaño, privilegios...
+
+Handler--> Funcion que trata una interrupcion
+	-Exception handler:
+		-Save hardware context
+		-Call exception service routine
+		-Restore hardware context
+		-Remove error code (if present) from kernel stack
+		-Return to user (IRET)
+	-Interrupt handler:
+		-Save hardware context
+		-End Of Interruption (EOI)
+		-Call exception service routine
+		-Restore hardware context
+		-IRET
+	-System call handler (type of software interrupt):
+		-Save hardware context and prepare parameters
+		-Execute system call service routine
+		-Update kernel context with the system call result
+		-Restore hardware context
+		-IRET
+
+Wrapper--> Funcion que sirve de intermediario para simplificar una operacion compleja, como una llamada al sistema operativo
+	Ejemplo de wrapper para la llamada a sistema write en lenguaje C: 
+		-ssize_t write(int fd, const void *buf, size_t count);
+
+Internamente, este wrapper en C invocará la llamada al sistema de bajo nivel que podría usar int 0x80 o sysenter/syscall
+
+Pilas--> Cada proceso tiene 2 pilas, una de usuario y otra de kernel. La de usuario esta en el espacio de memoria de usuario, y la 
+	del kernel esta en el espacio de direcciones del kernel, separada de la de usuario.
+------------------------------------------------------------------------------------------------------------------------------------
+Para windows la gestion es un poco diferente. La direccion de idt para las sistemcalls con int es 0x2e, y en vez de pasar todos
+los parametros en los registros, solo pasa un puntero con la direccion de memoria donde estaran todos los parametros.
