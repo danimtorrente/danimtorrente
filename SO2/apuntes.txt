@@ -114,12 +114,69 @@ AQUITECTURA (X86)
                 -eip (extended instruction pointer): contiene la direccion de la proxima instruccion que sera ejecutada en la CPU
 
         General Purpose Registers:
-                -EAX, EBX, ECX, EDX --> Proposito general, aunque cada uno se suele usar para una cosa diferente. En EAX se pone
-					el valor del resultado de una subrutina o interrupcion, 
-		-ESI-> Para manipulacion de datos en memoria. Apunta al origen de los datos en memoria
-		-EDI-> Para manipulacion de datos en memoria. Apunta el destino de los datos en memoria
-		-EBP-> Gestion de pila. Contiene la direccion base de la pila
-		-ESP-> Gestion de pila. Contiene la direccion tope de la pila
+                -EAX-> Se usa para operaciones aritmeticas y de retorno de funciones 
+		-EBX, ECX, EDX --> Proposito general, aunque cada uno se suele usar para una cosa diferente
+		-ESI-> Apunta al origen de los datos en memoria
+		-EDI-> Apunta el destino de los datos en memoria
+		-EBP-> Contiene la direccion base de la pila (base pointer)
+		-ESP-> Contiene la direccion tope de la pila (stack pointer)
+
+	MEMORIA:
+	-Tipos:
+		-Big endian-> 
+		-Little endian-> 
+
+	ASSEMBLER RULES:
+	-Seccion: .data -> variables inicializadas
+	-Seccion: .bss -> varibales sin inicializar
+	-Seccion: .txt -> codigo
+	-GLOBAL-> termino que se usa para declarar simbolos como funciones o variables que seran accesibles desde otros archivos de 
+		de codigo o por el enlazador.
+	-ETIQUETAS-> nombre:, sirve para referirse a una parte del codigo // etiquetas en datos: tipico-> msg db ... Aqui msg es una
+		etiqueta que hace referncia a la cadena de texto o numeros siguiente.
+ 	-DEFINICION DE DATOS:
+		-db->Define byte
+		-dw->Define word
+		-dd->Define double word
+		-Para hacer una cadena de texto al final hay que añadir un byte nulo (0) para marcar que la cadena termina.
+	-SUBRUTINAS: Los parametros de las funciones se pasan a traves de la pila y el valor de retorno se pasa a traves de eax.
+		- Paso de parametros a traves de la pila
+			-
+		- Registros que hay que salvar fuera de la llamada a la subrutina:
+			-
+			-
+		- Registros que hay que salvar dentro de la llamada a la subrutina:
+			-EBX
+			-
+
+EJEMPLO DE CODIGO: 
+	
+	section .data
+	    msg db 'Hola mundo', 0    ; Cadena de texto con terminador nulo
+	
+	section .bss
+	    buffer resb 64            ; Reserva 64 bytes de espacio sin inicializar
+	
+	section .text
+	    global _start             ; Punto de entrada del programa
+	
+	_start:
+	    ; Llamada al sistema para escribir el mensaje (usando la interrupción 0x80 en Linux)
+	    mov eax, 4                ; Número de la llamada al sistema: sys_write
+	    mov ebx, 1                ; File descriptor: 1 (stdout)
+	    mov ecx, msg              ; Dirección del mensaje
+	    mov edx, 11               ; Longitud del mensaje (11 caracteres)
+	    int 0x80                  ; Interrupción para la llamada al sistema
+	
+	    ; Llamada al sistema para salir
+	    mov eax, 1                ; Número de la llamada al sistema: sys_exit
+	    xor ebx, ebx              ; Código de salida: 0
+	    int 0x80                  ; Interrupción para la llamada al sistema
+
+	-INSTRUCCIONES ASSEMBLER INTERESANTES DEL X86(IA32 (Intel Arquitecture 32))
+		-CLI -> In most cases, CLI clears the IF flag in the EFLAGS register and no other flags are affected. Clearing the IF flag
+		causes the processor to ignore maskable external interrupts. 
+		-
 ------------------------------------------------------------------------------------------------------------------------------------
 MANEJO DE INTERRUPCIONES --> Salta una interrupcion, el procesador consulta la IDT para determinar la direccion del handler 
 correspondiente, cambio de contexo (el procesador guarda el estado actual del sistema (flags, registros...) en la pila, i cambia
