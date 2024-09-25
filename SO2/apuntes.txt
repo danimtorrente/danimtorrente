@@ -120,7 +120,8 @@ AQUITECTURA (X86)
 		-EDI-> Apunta el destino de los datos en memoria
 		-EBP-> Contiene la direccion base de la pila (base pointer)
 		-ESP-> Contiene la direccion tope de la pila (stack pointer)
-
+	
+	TSS-> estructura hardware que contiene el ss0 y el esp0 de la pila del kernel. Ayuda al cambio de contexto.
 	MEMORIA:
 	-Tipos (la arquitectura x86 es little endian):
 		-Big endian-> el byte menos significativo se almacena primero en la direccion de memoria mas baja
@@ -206,7 +207,7 @@ Systemcalls--> Synchronous, lo causa una instruccion de assembler. Es una llamad
 			-SYSENTER_EIP_MSR--> Contiene el entry point, la direccion de memoria donde comienza la ejecucion en el 
 					     kernel cuando se invoca sysenter
 			-SYSENTER_ESP_MSR--> Apunta a la base de la TSS (Task State Segment). Esta contiene informacion sobre el 
-					     estado de una tarea o proceso, incluyendo el puntero de la pila (ESP) del kernel.
+					     estado de una tarea o proceso, incluyendo el puntero de la pila (ESP) y el ss del kernel.
 		     Cuando termina la ejecucion, se devuelve el control al usuario con la instruccion sysexit
 
 IDT (Interrupt Descriptor table) --> Cada entrada tiene un puntero al handler, un nivel de privilegio minimo necesario
@@ -246,7 +247,11 @@ Wrapper--> Funcion que sirve de intermediario para simplificar una operacion com
 Internamente, este wrapper en C invocará la llamada al sistema de bajo nivel que podría usar int 0x80 o sysenter/syscall
 
 Pilas--> Cada proceso tiene 2 pilas, una de usuario y otra de kernel. La de usuario esta en el espacio de memoria de usuario, y la 
-	del kernel esta en el espacio de direcciones del kernel, separada de la de usuario.
+	del kernel esta en el espacio de direcciones del kernel, separada de la de usuario. Estas pilas tienen campos como ss y esp,
+	tanto la de kernel (ss0, esp0) como la de usuario, y estos campos se guardan en el task struct, de forma que cuando a un proceso le toca
+	ejecutarse en la cpu, se cargan todos los datos, registros, memoria... Dentro del propio task struct, los apartados relacionados
+	con el kernel, solo se pueden acceder cuandoo tienes privilegios suficientes. Hay un task_array donde cada elemento es un 
+	task_struct.
 ------------------------------------------------------------------------------------------------------------------------------------
 Para windows la gestion es un poco diferente. La direccion de idt para las sistemcalls con int es 0x2e, y en vez de pasar todos
 los parametros en los registros, solo pasa un puntero con la direccion de memoria donde estaran todos los parametros.
