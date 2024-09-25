@@ -27,3 +27,12 @@ BREAKPOINTS
 No se respodner a ninguna de las primeras tres preguntas. Que pide, el codigo assembler? las instrucciones con las que hace la subrutina? Si 
 es asi no hay problema pero si no no tengo ni la menor idea. No estoy pidiendo la respuesta necesariamente pero si alguna pista para poder
 figurarme la respuesta.
+
+COMPILAR C CON ASSEMBLER
+Tengo ya el codigo assembler y creo que el makefile pero me sigue dando errores y no me deja compilar. Creo que tiene que ver con el include,
+el texto del lab dice de hacer un  include, pero que hago include del archivo.S y ya? No sé por que pero funciona.
+
+-------------------------------------------------------------------------------------------------------------------------------------
+CAPITULO 3
+-No acabo de entender el TSS (task state segment), exactamente en que interviene y que hace? es una estructura hardware que contiene esp0 y ss0,
+ pero si cada proceso tiene uno diferente, y lo tienes que cargar de memoria igual, cual es el sentido de usarlo?
