@@ -122,9 +122,9 @@ AQUITECTURA (X86)
 		-ESP-> Contiene la direccion tope de la pila (stack pointer)
 
 	MEMORIA:
-	-Tipos:
-		-Big endian-> 
-		-Little endian-> 
+	-Tipos (la arquitectura x86 es little endian):
+		-Big endian-> el byte menos significativo se almacena primero en la direccion de memoria mas baja
+		-Little endian->  el byte mas significativo se almacena primero en la direccion de memoria mas baja
 
 	ASSEMBLER RULES:
 	-Seccion: .data -> variables inicializadas
@@ -139,15 +139,16 @@ AQUITECTURA (X86)
 		-dw->Define word
 		-dd->Define double word
 		-Para hacer una cadena de texto al final hay que añadir un byte nulo (0) para marcar que la cadena termina.
-	-SUBRUTINAS: Los parametros de las funciones se pasan a traves de la pila y el valor de retorno se pasa a traves de eax.
-		- Paso de parametros a traves de la pila
-			-
-		- Registros que hay que salvar fuera de la llamada a la subrutina:
-			-
-			-
-		- Registros que hay que salvar dentro de la llamada a la subrutina:
-			-EBX
-			-
+	-SUBRUTINAS: Los parametros de las funciones se pasan a traves de la pila (a partir de la direccion 8(%ebp)) y el valor de 
+	 retorno se pasa a traves de eax.
+		- Gestion de la pila
+			-Se salva en la pila ebp, y se actualiza su valor con el valor de esp
+			-Luego se le resta a esp el valor de las variables locales de la funcion. Van a la pila antes de ebp, es decir
+			 antes de la direccion 0 de la pila. La primera variable va mas arriba
+			-Pushl de los registros ebx, esi, edi. Pushl guarda el valor de un registro en la posicion de la pila a la que
+			 apunta esp y actualiza esp para que siga apuntando al tope de la pila
+			-Luego deshacer el proceso, sumar variables locales a esp, devolver el valor a los registros con popl, 
+			 actualizar esp y salvar ebp con popl, y finalmente ret
 
 EJEMPLO DE CODIGO: 
 	
