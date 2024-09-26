@@ -31,7 +31,7 @@
 00000000000i[      ]   SB16 support: no
 00000000000i[      ]   USB support: no
 00000000000i[      ]   VGA extension support: vbe
-00000000000i[MEM0  ] allocated memory at 0x7f07ce200010. after alignment, vector=0x7f07ce201000
+00000000000i[MEM0  ] allocated memory at 0x773c25e00010. after alignment, vector=0x773c25e01000
 00000000000i[MEM0  ] 16,00MB
 00000000000i[MEM0  ] mem block size = 0x00100000, blocks=16
 00000000000i[MEM0  ] rom at 0xfffe0000/131072 ('/opt/bochs/share/bochs/BIOS-bochs-latest')
@@ -41,7 +41,7 @@
 00000000000i[DEV   ] PIIX3 PCI-to-ISA bridge present at device 1, function 0
 00000000000i[PLUGIN] init_dev of 'cmos' plugin device by virtual method
 00000000000i[CMOS  ] Using local time for initial clock
-00000000000i[CMOS  ] Setting initial clock to: Mon Sep 23 22:25:20 2024 (time0=1727123120)
+00000000000i[CMOS  ] Setting initial clock to: Thu Sep 26 18:39:48 2024 (time0=1727368788)
 00000000000i[PLUGIN] init_dev of 'dma' plugin device by virtual method
 00000000000i[DMA   ] channel 4 used by cascade
 00000000000i[PLUGIN] init_dev of 'pic' plugin device by virtual method
@@ -133,127 +133,24 @@
 00000000000i[XGUI  ] Mouse capture off
 00000000000i[      ] set SIGINT handler to bx_debug_ctrlc_handler
 00000000000i[XGUI  ] Mouse capture off
-00000000001i[XGUI  ] Mouse capture off
-00000000002i[XGUI  ] Mouse capture off
-00000000003i[XGUI  ] Mouse capture off
-00000000004i[XGUI  ] Mouse capture off
-00000000005i[XGUI  ] Mouse capture off
-00000000006i[XGUI  ] Mouse capture off
-00000000007i[XGUI  ] Mouse capture off
-00000000008i[XGUI  ] Mouse capture off
-00000000009i[XGUI  ] Mouse capture off
-00000000010i[XGUI  ] Mouse capture off
-00000000011i[XGUI  ] Mouse capture off
-00000000012i[XGUI  ] Mouse capture off
-00000000013i[XGUI  ] Mouse capture off
-00000000014i[XGUI  ] Mouse capture off
-00000000015i[XGUI  ] Mouse capture off
-00000000016i[XGUI  ] Mouse capture off
-00000000017i[XGUI  ] Mouse capture off
-00000000018i[XGUI  ] Mouse capture off
-00000000019i[XGUI  ] Mouse capture off
-00000000020i[XGUI  ] Mouse capture off
-00000000021i[XGUI  ] Mouse capture off
-00000000022i[XGUI  ] Mouse capture off
-00000000023i[XGUI  ] Mouse capture off
-00000000024i[XGUI  ] Mouse capture off
-00000000025i[XGUI  ] Mouse capture off
-00000000026i[XGUI  ] Mouse capture off
-00000000027i[XGUI  ] Mouse capture off
-00000000028i[XGUI  ] Mouse capture off
-00000000029i[XGUI  ] Mouse capture off
-00000000030i[XGUI  ] Mouse capture off
-00000000031i[XGUI  ] Mouse capture off
-00000000032i[XGUI  ] Mouse capture off
-00000000033i[XGUI  ] Mouse capture off
-00000000034i[XGUI  ] Mouse capture off
-00000000035i[XGUI  ] Mouse capture off
-00000000036i[XGUI  ] Mouse capture off
-00000000037i[XGUI  ] Mouse capture off
-00000000038i[XGUI  ] Mouse capture off
-00000000039i[XGUI  ] Mouse capture off
-00000000040i[XGUI  ] Mouse capture off
-00000000041i[XGUI  ] Mouse capture off
-00000000042i[XGUI  ] Mouse capture off
-00000000043i[XGUI  ] Mouse capture off
-00000000044i[XGUI  ] Mouse capture off
-00000000045i[XGUI  ] Mouse capture off
-00000000046i[XGUI  ] Mouse capture off
-00000000047i[XGUI  ] Mouse capture off
-00000000048i[XGUI  ] Mouse capture off
-00000000049i[XGUI  ] Mouse capture off
-00000000050i[XGUI  ] Mouse capture off
-00000000051i[XGUI  ] Mouse capture off
-00000000052i[XGUI  ] Mouse capture off
-00000000053i[XGUI  ] Mouse capture off
-00000000054i[XGUI  ] Mouse capture off
-00000000055i[XGUI  ] Mouse capture off
-00000000056i[XGUI  ] Mouse capture off
-00000000057i[XGUI  ] Mouse capture off
-00000000058i[XGUI  ] Mouse capture off
-00000000059i[XGUI  ] Mouse capture off
-00000000060i[XGUI  ] Mouse capture off
-00000000061i[XGUI  ] Mouse capture off
-00000000062i[XGUI  ] Mouse capture off
-00000000063i[XGUI  ] Mouse capture off
-00000000064i[XGUI  ] Mouse capture off
-00000000065i[XGUI  ] Mouse capture off
-00000000066i[XGUI  ] Mouse capture off
-00000000067i[XGUI  ] Mouse capture off
-00000000068i[XGUI  ] Mouse capture off
-00000000069i[XGUI  ] Mouse capture off
-00000000070i[XGUI  ] Mouse capture off
-00000000071i[XGUI  ] Mouse capture off
-00000000072i[XGUI  ] Mouse capture off
-00000000073i[XGUI  ] Mouse capture off
-00000000074i[XGUI  ] Mouse capture off
-00000000075i[XGUI  ] Mouse capture off
-00000000076i[XGUI  ] Mouse capture off
-00000000077i[XGUI  ] Mouse capture off
-00000000078i[XGUI  ] Mouse capture off
-00000000079i[XGUI  ] Mouse capture off
-00000000080i[XGUI  ] Mouse capture off
-00000000081i[XGUI  ] Mouse capture off
-00000000082i[XGUI  ] Mouse capture off
-00000000083i[XGUI  ] Mouse capture off
-00000000084i[XGUI  ] Mouse capture off
-00000000085i[XGUI  ] Mouse capture off
-00000000086i[XGUI  ] Mouse capture off
-00000000087i[XGUI  ] Mouse capture off
-00000000088i[XGUI  ] Mouse capture off
-00000000089i[XGUI  ] Mouse capture off
-00000000090i[XGUI  ] Mouse capture off
-00000000091i[XGUI  ] Mouse capture off
-00000000092i[XGUI  ] Mouse capture off
-00000000093i[XGUI  ] Mouse capture off
-00000000094i[XGUI  ] Mouse capture off
-00000000095i[XGUI  ] Mouse capture off
-00000000096i[XGUI  ] Mouse capture off
-00000000097i[XGUI  ] Mouse capture off
-00000000098i[XGUI  ] Mouse capture off
-00000000099i[XGUI  ] Mouse capture off
-00000000100i[XGUI  ] Mouse capture off
-00000000101i[XGUI  ] Mouse capture off
-00000000102i[XGUI  ] Mouse capture off
-00000000103i[XGUI  ] Mouse capture off
-00000000103i[      ] dbg: Quit
-00000000103i[CPU0  ] CPU is in real mode (active)
-00000000103i[CPU0  ] CS.mode = 16 bit
-00000000103i[CPU0  ] SS.mode = 16 bit
-00000000103i[CPU0  ] EFER   = 0x00000000
-00000000103i[CPU0  ] | EAX=00000000  EBX=00000000  ECX=00000039  EDX=00000000
-00000000103i[CPU0  ] | ESP=0000fffe  EBP=00000000  ESI=00000000  EDI=0000048e
-00000000103i[CPU0  ] | IOPL=0 id vip vif ac vm rf nt of df if tf sf zf AF pf CF
-00000000103i[CPU0  ] | SEG sltr(index|ti|rpl)     base    limit G D
-00000000103i[CPU0  ] |  CS:f000( 1e00| 0|  0) 000f0000 0000ffff 0 0
-00000000103i[CPU0  ] |  DS:0000( 0000| 0|  0) 00000000 0000ffff 0 0
-00000000103i[CPU0  ] |  SS:0000( 0000| 0|  0) 00000000 0000ffff 0 0
-00000000103i[CPU0  ] |  ES:0000( 0000| 0|  0) 00000000 0000ffff 0 0
-00000000103i[CPU0  ] |  FS:0000( 0000| 0|  0) 00000000 0000ffff 0 0
-00000000103i[CPU0  ] |  GS:0000( 0000| 0|  0) 00000000 0000ffff 0 0
-00000000103i[CPU0  ] | EIP=0000e0c4 (0000e0c4)
-00000000103i[CPU0  ] | CR0=0x60000010 CR2=0x00000000
-00000000103i[CPU0  ] | CR3=0x00000000 CR4=0x00000000
-00000000103i[CMOS  ] Last time is 1727123120 (Mon Sep 23 22:25:20 2024)
-00000000103i[XGUI  ] Exit
-00000000103i[SIM   ] quit_sim called with exit code 0
+00000000000i[      ] dbg: Quit
+00000000000i[CPU0  ] CPU is in real mode (active)
+00000000000i[CPU0  ] CS.mode = 16 bit
+00000000000i[CPU0  ] SS.mode = 16 bit
+00000000000i[CPU0  ] EFER   = 0x00000000
+00000000000i[CPU0  ] | EAX=00000000  EBX=00000000  ECX=00000000  EDX=00000000
+00000000000i[CPU0  ] | ESP=00000000  EBP=00000000  ESI=00000000  EDI=00000000
+00000000000i[CPU0  ] | IOPL=0 id vip vif ac vm rf nt of df if tf sf zf af pf cf
+00000000000i[CPU0  ] | SEG sltr(index|ti|rpl)     base    limit G D
+00000000000i[CPU0  ] |  CS:f000( 1e00| 0|  0) ffff0000 0000ffff 0 0
+00000000000i[CPU0  ] |  DS:0000( 0000| 0|  0) 00000000 0000ffff 0 0
+00000000000i[CPU0  ] |  SS:0000( 0000| 0|  0) 00000000 0000ffff 0 0
+00000000000i[CPU0  ] |  ES:0000( 0000| 0|  0) 00000000 0000ffff 0 0
+00000000000i[CPU0  ] |  FS:0000( 0000| 0|  0) 00000000 0000ffff 0 0
+00000000000i[CPU0  ] |  GS:0000( 0000| 0|  0) 00000000 0000ffff 0 0
+00000000000i[CPU0  ] | EIP=0000fff0 (0000fff0)
+00000000000i[CPU0  ] | CR0=0x60000010 CR2=0x00000000
+00000000000i[CPU0  ] | CR3=0x00000000 CR4=0x00000000
+00000000000i[CMOS  ] Last time is 1727368788 (Thu Sep 26 18:39:48 2024)
+00000000000i[XGUI  ] Exit
+00000000000i[SIM   ] quit_sim called with exit code 0

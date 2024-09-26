@@ -7,7 +7,9 @@ BOOTLOADER
 -Para imprimir el mensaje carregant hacen un int 0x10, si este kernel esta basado en linux no deberia ser 0x80? O como lo 
 configuramos nosotros da igual?
 
--Que es A20 (aparece en el fichero)?
+-Que es A20?
+
+-Comando de assembler cli supongo que hace que no te lleguen mas interrupciones
 
 BUILD.C
 
@@ -15,24 +17,5 @@ BUILD.C
 esos binarios son .out y no .o, segundo, lo que hace es simplemente mirar el tamaño de user y system y anotarlo en el bootloader?
 
 BREAKPOINTS
-
--El apartado de los breakpoints no acabo de entender los resultados. Luego no se si lo he hecho bien ni si miro donde tengo que mirar.
-
--Respecto a las flags, presupongo que es el O2, que la optimizacion del codigo hace que la suma se haga inline. Queria preguntar por
- los flags de compilacion mas importantes. No para que me los digas, sino por si sabes de alguna fuente de informacion donde se 
- expliquen bien lo más importantes o prioritarios. Mas que nada que si uso el man para ver las opciones, me salen todas y de forma 
- exhaustiva es verdaderamente pesado e interminable.
------------------------------------------------------------------------------------------------------------------------------------
-2.6.3
-No se respodner a ninguna de las primeras tres preguntas. Que pide, el codigo assembler? las instrucciones con las que hace la subrutina? Si 
-es asi no hay problema pero si no no tengo ni la menor idea. No estoy pidiendo la respuesta necesariamente pero si alguna pista para poder
-figurarme la respuesta.
-
-COMPILAR C CON ASSEMBLER
-Tengo ya el codigo assembler y creo que el makefile pero me sigue dando errores y no me deja compilar. Creo que tiene que ver con el include,
-el texto del lab dice de hacer un  include, pero que hago include del archivo.S y ya? No sé por que pero funciona.
-
--------------------------------------------------------------------------------------------------------------------------------------
-CAPITULO 3
--No acabo de entender el TSS (task state segment), exactamente en que interviene y que hace? es una estructura hardware que contiene esp0 y ss0,
- pero si cada proceso tiene uno diferente, y lo tienes que cargar de memoria igual, cual es el sentido de usarlo?
+-El paso de los breakpoints no acabo de entender los resultados. Luego no se si lo he hecho bien ni si miro donde tengo que mirar.
+-Respecto a las flags, presupongo que es el O2, que la optimizacion del codigo hace que la suma se haga inine.

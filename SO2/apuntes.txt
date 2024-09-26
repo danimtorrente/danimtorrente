@@ -112,73 +112,14 @@ AQUITECTURA (X86)
 							    del procesador(overflow, zero...)
                 -cs (code segment): apunta al segmento de codigo en memoria, define donde esta el codigo que se ejecuta
                 -eip (extended instruction pointer): contiene la direccion de la proxima instruccion que sera ejecutada en la CPU
-
+		((¡¡¡Revisar!!!)-__Kernel_ds) -> kernel data segment
         General Purpose Registers:
-                -EAX-> Se usa para operaciones aritmeticas y de retorno de funciones 
-		-EBX, ECX, EDX --> Proposito general, aunque cada uno se suele usar para una cosa diferente
-		-ESI-> Apunta al origen de los datos en memoria
-		-EDI-> Apunta el destino de los datos en memoria
-		-EBP-> Contiene la direccion base de la pila (base pointer)
-		-ESP-> Contiene la direccion tope de la pila (stack pointer)
-	
-	TSS-> estructura hardware que contiene el ss0 y el esp0 de la pila del kernel. Ayuda al cambio de contexto.
-	MEMORIA:
-	-Tipos (la arquitectura x86 es little endian):
-		-Big endian-> el byte menos significativo se almacena primero en la direccion de memoria mas baja
-		-Little endian->  el byte mas significativo se almacena primero en la direccion de memoria mas baja
-
-	ASSEMBLER RULES:
-	-Seccion: .data -> variables inicializadas
-	-Seccion: .bss -> varibales sin inicializar
-	-Seccion: .txt -> codigo
-	-GLOBAL-> termino que se usa para declarar simbolos como funciones o variables que seran accesibles desde otros archivos de 
-		de codigo o por el enlazador.
-	-ETIQUETAS-> nombre:, sirve para referirse a una parte del codigo // etiquetas en datos: tipico-> msg db ... Aqui msg es una
-		etiqueta que hace referncia a la cadena de texto o numeros siguiente.
- 	-DEFINICION DE DATOS:
-		-db->Define byte
-		-dw->Define word
-		-dd->Define double word
-		-Para hacer una cadena de texto al final hay que añadir un byte nulo (0) para marcar que la cadena termina.
-	-SUBRUTINAS: Los parametros de las funciones se pasan a traves de la pila (a partir de la direccion 8(%ebp)) y el valor de 
-	 retorno se pasa a traves de eax.
-		- Gestion de la pila
-			-Se salva en la pila ebp, y se actualiza su valor con el valor de esp
-			-Luego se le resta a esp el valor de las variables locales de la funcion. Van a la pila antes de ebp, es decir
-			 antes de la direccion 0 de la pila. La primera variable va mas arriba
-			-Pushl de los registros ebx, esi, edi. Pushl guarda el valor de un registro en la posicion de la pila a la que
-			 apunta esp y actualiza esp para que siga apuntando al tope de la pila
-			-Luego deshacer el proceso, sumar variables locales a esp, devolver el valor a los registros con popl, 
-			 actualizar esp y salvar ebp con popl, y finalmente ret
-
-EJEMPLO DE CODIGO: 
-	
-	section .data
-	    msg db 'Hola mundo', 0    ; Cadena de texto con terminador nulo
-	
-	section .bss
-	    buffer resb 64            ; Reserva 64 bytes de espacio sin inicializar
-	
-	section .text
-	    global _start             ; Punto de entrada del programa
-	
-	_start:
-	    ; Llamada al sistema para escribir el mensaje (usando la interrupción 0x80 en Linux)
-	    mov eax, 4                ; Número de la llamada al sistema: sys_write
-	    mov ebx, 1                ; File descriptor: 1 (stdout)
-	    mov ecx, msg              ; Dirección del mensaje
-	    mov edx, 11               ; Longitud del mensaje (11 caracteres)
-	    int 0x80                  ; Interrupción para la llamada al sistema
-	
-	    ; Llamada al sistema para salir
-	    mov eax, 1                ; Número de la llamada al sistema: sys_exit
-	    xor ebx, ebx              ; Código de salida: 0
-	    int 0x80                  ; Interrupción para la llamada al sistema
-
-	-INSTRUCCIONES ASSEMBLER INTERESANTES DEL X86(IA32 (Intel Arquitecture 32))
-		-CLI -> In most cases, CLI clears the IF flag in the EFLAGS register and no other flags are affected. Clearing the IF flag
-		causes the processor to ignore maskable external interrupts. 
-		-
+                -EAX, EBX, ECX, EDX --> Proposito general, aunque cada uno se suele usar para una cosa diferente. En EAX se pone
+					el valor del resultado de una subrutina o interrupcion, 
+		-ESI-> Para manipulacion de datos en memoria. Apunta al origen de los datos en memoria
+		-EDI-> Para manipulacion de datos en memoria. Apunta el destino de los datos en memoria
+		-EBP-> Gestion de pila. Contiene la direccion base de la pila
+		-ESP-> Gestion de pila. Contiene la direccion tope de la pila
 ------------------------------------------------------------------------------------------------------------------------------------
 MANEJO DE INTERRUPCIONES --> Salta una interrupcion, el procesador consulta la IDT para determinar la direccion del handler 
 correspondiente, cambio de contexo (el procesador guarda el estado actual del sistema (flags, registros...) en la pila, i cambia
@@ -207,7 +148,7 @@ Systemcalls--> Synchronous, lo causa una instruccion de assembler. Es una llamad
 			-SYSENTER_EIP_MSR--> Contiene el entry point, la direccion de memoria donde comienza la ejecucion en el 
 					     kernel cuando se invoca sysenter
 			-SYSENTER_ESP_MSR--> Apunta a la base de la TSS (Task State Segment). Esta contiene informacion sobre el 
-					     estado de una tarea o proceso, incluyendo el puntero de la pila (ESP) y el ss del kernel.
+					     estado de una tarea o proceso, incluyendo el puntero de la pila (ESP) del kernel.
 		     Cuando termina la ejecucion, se devuelve el control al usuario con la instruccion sysexit
 
 IDT (Interrupt Descriptor table) --> Cada entrada tiene un puntero al handler, un nivel de privilegio minimo necesario
@@ -247,11 +188,7 @@ Wrapper--> Funcion que sirve de intermediario para simplificar una operacion com
 Internamente, este wrapper en C invocará la llamada al sistema de bajo nivel que podría usar int 0x80 o sysenter/syscall
 
 Pilas--> Cada proceso tiene 2 pilas, una de usuario y otra de kernel. La de usuario esta en el espacio de memoria de usuario, y la 
-	del kernel esta en el espacio de direcciones del kernel, separada de la de usuario. Estas pilas tienen campos como ss y esp,
-	tanto la de kernel (ss0, esp0) como la de usuario, y estos campos se guardan en el task struct, de forma que cuando a un proceso le toca
-	ejecutarse en la cpu, se cargan todos los datos, registros, memoria... Dentro del propio task struct, los apartados relacionados
-	con el kernel, solo se pueden acceder cuandoo tienes privilegios suficientes. Hay un task_array donde cada elemento es un 
-	task_struct.
+	del kernel esta en el espacio de direcciones del kernel, separada de la de usuario.
 ------------------------------------------------------------------------------------------------------------------------------------
 Para windows la gestion es un poco diferente. La direccion de idt para las sistemcalls con int es 0x2e, y en vez de pasar todos
 los parametros en los registros, solo pasa un puntero con la direccion de memoria donde estaran todos los parametros.
