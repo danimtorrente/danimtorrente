@@ -29,6 +29,8 @@ char char_map[] =
   '\0','\0'
 };
 
+void keyboard_handler();
+
 void setInterruptHandler(int vector, void (*handler)(), int maxAccessibleFromPL)
 {
   /***********************************************************************/
@@ -82,8 +84,17 @@ void setIdt()
   
   set_handlers();
 
-  /* ADD INITIALIZATION CODE FOR INTERRUPT VECTOR */
+  setInterruptHandler(33, keyboard_handler, 0);
 
   set_idt_reg(&idtR);
 }
 
+
+void keyboard_routine() {
+	int port = 0x60;
+	unsigned char input = inb(port);
+	unsigned char mb = input >> 7;
+	if (mb & 0) {
+		printc_xy(0,0,char_map[input]); // printc_xy(Byte mx, Byte my, char c)
+	}
+}

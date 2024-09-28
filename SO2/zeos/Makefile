@@ -24,8 +24,8 @@ LDFLAGS = -g -melf_i386
 
 SYSOBJ = \
 	interrupt.o \
+	interrupt_handler.o \
 	entry.o \
-	exit.o \
 	sys_call_table.o \
 	io.o \
 	sched.o \
@@ -66,7 +66,7 @@ bootsect.s: bootsect.S
 entry.s: entry.S $(INCLUDEDIR)/asm.h $(INCLUDEDIR)/segment.h
 	$(CPP) $(ASMFLAGS) -o $@ $<
 
-exit.s: exit.S $(INCLUDEDIR)/asm.h $(INCLUDEDIR)/segment.h
+interrupt_handler.s: interrupt_handler.S $(INCLUDEDIR)/asm.h
 	$(CPP) $(ASMFLAGS) -o $@ $<
 
 sys_call_table.s: sys_call_table.S $(INCLUDEDIR)/asm.h $(INCLUDEDIR)/segment.h

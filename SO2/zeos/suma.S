@@ -1,7 +1,7 @@
 #include <asm.h>
 
 ENTRY(addAsm)
-addAsm:	pushl %ebp
+	pushl %ebp
 	movl %esp, %ebp
 	movl 8(%ebp), %eax
 	addl 12(%ebp), %eax
