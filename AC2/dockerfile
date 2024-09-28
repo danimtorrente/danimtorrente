@@ -1,0 +1,49 @@
+# syntax=docker/dockerfile:1
+
+FROM ubuntu:24.04
+
+ARG UID
+ARG GID
+
+# verilator install
+RUN apt update
+RUN apt-get -y install git help2man perl python3 make autoconf g++ flex bison ccache
+RUN apt-get -y install libgoogle-perftools-dev numactl perl-doc
+RUN apt-get -y install libfl2
+RUN apt-get -y install libfl-dev
+RUN apt-get -y install verilator
+RUN apt-get -y install libnss3-dev
+RUN apt-get -y install libx11-xcb1 libgtk-3-0 libxss1 libcanberra-gtk3-module libgbm-dev
+
+RUN apt-get install -y xterm
+
+# RUN git clone https://github.com/verilator/verilator
+# RUN unset VERILATOR_ROOT
+# RUN cd verilator && git pull && git checkout v5.014 && autoconf && ./configure && make -j2 && make install
+
+RUN DEBIAN_FRONTEND=noninteractive TZ=Europe/Madrid apt-get -y install tzdata
+RUN apt-get -y install gcc-riscv64-unknown-elf
+RUN apt-get -y install gcc-riscv64-linux-gnu
+RUN apt-get -y install gtkwave
+RUN apt-get -y install wget
+
+RUN wget https://github.com/shioyadan/Konata/releases/download/v0.34/konata-linux-x64.tar.gz
+RUN tar -xzf konata-linux-x64.tar.gz
+RUN rm konata-linux-x64.tar.gz
+RUN mv konata-linux-x64 opt
+
+ENV PATH="$PATH:/opt/konata-linux-x64"
+
+# Update the package list, install sudo, create a non-root user, and grant password-less sudo permissions
+#RUN apt update && \
+#    apt install -y sudo
+#
+#RUN grep -q ":$GID:" /etc/group || groupadd -g $GID ac2 
+#RUN adduser --uid $UID --gid $GID --disabled-password --gecos "" ac2 && \
+#    echo 'ac2 ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers
+
+# Set the non-root user as the default user
+USER ubuntu
+
+# Set the working directory
+WORKDIR /home/ubuntu/

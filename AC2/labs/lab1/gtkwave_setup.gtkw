@@ -1,0 +1,39 @@
+[*]
+[*] GTKWave Analyzer v3.3.104 (w)1999-2020 BSI
+[*] Wed Feb  7 08:59:33 2024
+[*]
+[dumpfile] "/home/mdoblas/Downloads/AC2/ac2/labs/lab1/waveform.vcd"
+[dumpfile_mtime] "Wed Feb  7 08:59:32 2024"
+[dumpfile_size] 852
+[savefile] "/home/mdoblas/Downloads/AC2/ac2/labs/lab1/gtkwave_setup.gtkw"
+[timestart] 0
+[size] 1080 1883
+[pos] -1 -1
+*-9.974829 9 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] TOP.
+[treeopen] TOP.full_adder_tb.
+[sst_width] 297
+[signals_width] 255
+[sst_expanded] 1
+[sst_vpaned_height] 577
+@29
+TOP.full_adder_tb.clk
+@200
+-In
+@28
+TOP.full_adder_tb.full_adder_inst.x_i
+TOP.full_adder_tb.full_adder_inst.y_i
+TOP.full_adder_tb.full_adder_inst.c_i
+@200
+-Internal
+@28
+TOP.full_adder_tb.full_adder_inst.a_int
+TOP.full_adder_tb.full_adder_inst.b_int
+TOP.full_adder_tb.full_adder_inst.d_int
+@200
+-Out
+@28
+TOP.full_adder_tb.full_adder_inst.s_o
+TOP.full_adder_tb.full_adder_inst.c_o
+[pattern_trace] 1
+[pattern_trace] 0
