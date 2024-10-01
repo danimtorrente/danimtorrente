@@ -30,6 +30,7 @@ char char_map[] =
 };
 
 void keyboard_handler();
+void system_call();
 
 void setInterruptHandler(int vector, void (*handler)(), int maxAccessibleFromPL)
 {
@@ -81,20 +82,35 @@ void setIdt()
   /* Program interrups/exception service routines */
   idtR.base  = (DWord)idt;
   idtR.limit = IDT_ENTRIES * sizeof(Gate) - 1;
-  
+
   set_handlers();
 
-  setInterruptHandler(33, keyboard_handler, 0);
+  setInterruptHandler(33, keyboard_handler, 0); // verificar parametros
+  setInterruptHandler(0x80, system_call, 0); // verificar parametros
 
   set_idt_reg(&idtR);
 }
 
 
-void keyboard_routine() {
+void keyboard_routine() { // REVISAR
 	int port = 0x60;
 	unsigned char input = inb(port);
 	unsigned char mb = input >> 7;
 	if (mb & 0) {
 		printc_xy(0,0,char_map[input]); // printc_xy(Byte mx, Byte my, char c)
 	}
+}
+// fd = file descriptor. In this delivery always 1
+// buffer = pointer to the bytes
+// size = number of bytes
+int sys_write(int fd, char * buffer, int size) {
+	int res = 0;
+	res = check_fd(fd, 1);
+	if (buffer == NULL) res = -1;//  SINTAXIS y CODIGO ERROR
+	if (size < 0) res = -1; // BUSCAR CODIGO ERROR
+	// COPY THE DATA FORM THE USER ADRESS SPACE IF NEEDED?????
+	if (res >= 0) {
+		res = sys_write_console(buffer, size);
+	}
+	return res;
 }

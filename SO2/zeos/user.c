@@ -1,5 +1,5 @@
 #include <libc.h>
-
+#include "wrappers.h"
 char buff[24];
 
 int pid;
