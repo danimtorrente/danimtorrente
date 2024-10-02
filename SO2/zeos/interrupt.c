@@ -11,6 +11,7 @@
 
 Gate idt[IDT_ENTRIES];
 Register    idtR;
+int zeos_ticks;
 
 char char_map[] =
 {
@@ -31,6 +32,9 @@ char char_map[] =
 
 void keyboard_handler();
 void system_call();
+void writeMSR(unsigned int msr, unsigned int low, unsigned int high);
+void syscall_handler_sysenter();
+void clock_handler();
 
 void setInterruptHandler(int vector, void (*handler)(), int maxAccessibleFromPL)
 {
@@ -87,8 +91,13 @@ void setIdt()
 
   setInterruptHandler(33, keyboard_handler, 0); // verificar parametros
   setInterruptHandler(0x80, system_call, 0); // verificar parametros
-
+  setInterruptHandler(32, clock_handler, 0);
+  setTrapHandler(0x80, system_call, 3);
   set_idt_reg(&idtR);
+
+  writeMSR(0x174, __KERNEL_CS, 0); // REVISAR SINTAXIS
+  writeMSR(0x175, INITIAL_ESP, 0); // REVISAR SINTAXIS
+  writeMSR(0x176, &(syscall_handler_sysenter), 0); // REVISAR SINTAXIS
 }
 
 
@@ -106,11 +115,22 @@ void keyboard_routine() { // REVISAR
 int sys_write(int fd, char * buffer, int size) {
 	int res = 0;
 	res = check_fd(fd, 1);
-	if (buffer == NULL) res = -1;//  SINTAXIS y CODIGO ERROR
-	if (size < 0) res = -1; // BUSCAR CODIGO ERROR
+	if (buffer == NULL) res = -1;// CODIGO ERROR?
+	if (size < 0) res = -1; // CODIGO ERROR?
 	// COPY THE DATA FORM THE USER ADRESS SPACE IF NEEDED?????
+	// copy_from_user(buffer, *buffer+size???, size)
 	if (res >= 0) {
 		res = sys_write_console(buffer, size);
 	}
+	//copy_to_user(buffer, *buffer+size???, size)
 	return res;
+}
+
+void clock_routine() {
+	zeos_ticks += 1;
+	zeos_show_clock();
+}
+
+int sys_gettime() {
+	return zeos_ticks;
 }

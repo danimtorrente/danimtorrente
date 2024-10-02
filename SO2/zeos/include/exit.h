@@ -7,9 +7,9 @@
 #define __EXIT_H__
 
 #define RESTORE_ALL \
-	movl %es, %edx; \
-	movl %ds, %edx; \
-	movl %edx, $__KERNEL_DS; \
+//	movw %es, %dx; \  //extra segment???
+//	movw %ds, %dx; \ //data segment???
+//	movw %dx, $__KERNEL_DS; \
 	popl %edx; \
 	popl %ecx; \
 	popl %ebx; \

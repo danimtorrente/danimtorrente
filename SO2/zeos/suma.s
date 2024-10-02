@@ -8,7 +8,7 @@
 # 2 "suma.S" 2
 
 .globl addAsm; .type addAsm, @function; .align 0; addAsm:
-addAsm: pushl %ebp
+ pushl %ebp
  movl %esp, %ebp
  movl 8(%ebp), %eax
  addl 12(%ebp), %eax

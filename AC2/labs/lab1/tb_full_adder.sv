@@ -63,6 +63,27 @@ module full_adder_tb;
         #500 $display("(%0d) TO: x=%b y=%b Cin=%b -> Sum=%b Cout=%b\n",$time,x,y,cin,sum,carry);
     endtask
 
+// En esta funcion se prueban maximos y minimos, ahora estan puestos los minimos porque era el ultimo ejercicio pero 
+// simplemente seria cambiar los vectores de entrada y ya. Respecto al ejercicio 2, se podia hacer manual o con codigo
+// y nosotros hicimos ambas, para el codigo lo unico que cambia es hacer el basic test, añadiendo un clock mas por 
+// iteracion y haciendo asignacion y display de 0 a x, y, c.
+
+    task custom_testing();
+	$display(" ------------------------------------------------");
+        $display(" Basic test ");
+        $display(" ------------------------------------------------");
+
+        clk = 1; x = 0; y = 0; cin = 0;
+        #500 clk = 0;
+        #500 clk = 1; x = 0; y = 0; cin = 0;
+        #500 clk = 0;
+        #500 
+	     $display("(%0d) x=%b y=%b Cin=%b -> Sum=%b Cout=%b\n",$time,x,y,cin,sum,carry);
+	     clk = 1; x = 0; y = 0; cin = 1;
+	 #500 clk = 0;
+	 #500 $display("(%0d) x=%b y=%b Cin=%b -> Sum=%b Cout=%b\n",$time,x,y,cin,sum,carry);
+    endtask
+
     // Main execution flow of the testbench
     initial begin 
         // wavefrom generation
@@ -70,7 +91,8 @@ module full_adder_tb;
         $dumpvars();
 
         // Functionality testing of the 
-        basic_functional_testing();
+        // basic_functional_testing();
+	custom_testing();
         transition_test(    
             1'b0,1'b0,1'b0,  // from (x,y,c)
             1'b1,1'b1,1'b1); // to   (x,y,c)
