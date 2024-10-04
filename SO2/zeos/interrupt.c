@@ -6,6 +6,7 @@
 #include <segment.h>
 #include <hardware.h>
 #include <io.h>
+#include "mm.h"
 
 #include <zeos_interrupt.h>
 
@@ -32,7 +33,7 @@ char char_map[] =
 
 void keyboard_handler();
 void system_call();
-void writeMSR(unsigned int msr, unsigned int low, unsigned int high);
+void writeMSR(unsigned int msr, unsigned int low, unsigned int high); // REVISAR
 void syscall_handler_sysenter();
 void clock_handler();
 
@@ -95,9 +96,10 @@ void setIdt()
   setTrapHandler(0x80, system_call, 3);
   set_idt_reg(&idtR);
 
-  writeMSR(0x174, __KERNEL_CS, 0); // REVISAR SINTAXIS
-  writeMSR(0x175, INITIAL_ESP, 0); // REVISAR SINTAXIS
-  writeMSR(0x176, &(syscall_handler_sysenter), 0); // REVISAR SINTAXIS
+  writeMSR(0x174, tss.ss0, 0);
+  writeMSR(0x175, tss.esp0, 0);
+  unsigned int address_sysenter = (unsigned int)&syscall_handler_sysenter;
+  writeMSR(0x176, address_sysenter, 0); // REVISAR SINTAXIS
 }
 
 
@@ -109,28 +111,8 @@ void keyboard_routine() { // REVISAR
 		printc_xy(0,0,char_map[input]); // printc_xy(Byte mx, Byte my, char c)
 	}
 }
-// fd = file descriptor. In this delivery always 1
-// buffer = pointer to the bytes
-// size = number of bytes
-int sys_write(int fd, char * buffer, int size) {
-	int res = 0;
-	res = check_fd(fd, 1);
-	if (buffer == NULL) res = -1;// CODIGO ERROR?
-	if (size < 0) res = -1; // CODIGO ERROR?
-	// COPY THE DATA FORM THE USER ADRESS SPACE IF NEEDED?????
-	// copy_from_user(buffer, *buffer+size???, size)
-	if (res >= 0) {
-		res = sys_write_console(buffer, size);
-	}
-	//copy_to_user(buffer, *buffer+size???, size)
-	return res;
-}
 
 void clock_routine() {
 	zeos_ticks += 1;
 	zeos_show_clock();
-}
-
-int sys_gettime() {
-	return zeos_ticks;
 }

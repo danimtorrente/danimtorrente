@@ -13,6 +13,8 @@
 
 #include <sched.h>
 
+#include "interrupt.h"
+
 #define LECTURA 0
 #define ESCRIPTURA 1
 
@@ -44,4 +46,25 @@ int sys_fork()
 
 void sys_exit()
 {  
+}
+
+// fd = file descriptor. In this delivery always 1
+// buffer = pointer to the bytes
+// size = number of bytes
+int sys_write(int fd, char * buffer, int size) {
+	int res = 0;
+	res = check_fd(fd, 1);
+	if (buffer == NULL) res = -1;// CODIGO ERROR?
+	if (size < 0) res = -1; // CODIGO ERROR?
+	// copy_from_user(buffer, *buffer+size???, size)
+	if (res >= 0) {
+		res = sys_write_console(buffer, size);
+	}
+	//copy_to_user(buffer, *buffer+size???, size)
+	return res;
+}
+
+
+int sys_gettime() {
+	return zeos_ticks;
 }

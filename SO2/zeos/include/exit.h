@@ -1,5 +1,3 @@
-
-
 #include "asm.h"
 #include "segment.h"
 
@@ -7,9 +5,6 @@
 #define __EXIT_H__
 
 #define RESTORE_ALL \
-//	movw %es, %dx; \  //extra segment???
-//	movw %ds, %dx; \ //data segment???
-//	movw %dx, $__KERNEL_DS; \
 	popl %edx; \
 	popl %ecx; \
 	popl %ebx; \

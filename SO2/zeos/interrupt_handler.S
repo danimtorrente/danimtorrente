@@ -11,7 +11,6 @@ ENTRY(writeMSR) // two parameters: MSRnum, value to store in that MSR
 	ret
 
 //HANDLERS
-
 ENTRY(keyboard_handler)
 	SAVE_ALL
 	EOI
@@ -27,12 +26,12 @@ ENTRY(system_call)
 	jg err
 	call *sys_call_table(, %EAX, 0x04)
 	jmp fin
-err:	movl $-38, %EAX // ENOSYS ERROR: CONSULTAR NUMERO ERROR
+err:	movl $-38, %EAX
 fin:	movl %EAX, 0x18(%esp)
 	RESTORE_ALL
 	iret
 
-ENTRY(syscall_handler_sysenter) //pillat directament de la practica, puc fer push sense tipus de dades?
+ENTRY(syscall_handler_sysenter) //PUSH SENSE TIPUS DE DADES?
 	push $__USER_DS
 	push %EBP // User stack address
 	pushfl
@@ -46,7 +45,7 @@ ENTRY(syscall_handler_sysenter) //pillat directament de la practica, puc fer pus
 	call *sys_call_table(, %EAX, 0x04)
 	jmp sysenter_fin
 sysenter_err:
-	movl $-38, %EAX // ENOSYS ERROR: CONSULTAR NUMERO ERROR si es 38 definir variable enosys
+	movl $-38, %EAX
 sysenter_fin:
 	movl %EAX, 0x18(%ESP)
 	RESTORE_ALL
@@ -62,40 +61,4 @@ ENTRY(clock_handler)
 	RESTORE_ALL
 	iret
 
-// WRAPPERS
-
-ENTRY(write)
-	movl 4(%esp), %edx // fd
-	movw 8(%esp), %cx // buffer
-	movl 12(%esp), %ebx // size
-	movl $4, %eax // put identifier of the syscall in eax
-	int $0x80 // generate trap
-	// AQUI EL RESULTADO DE INT DEBERIA ESTAR EN ESP + 0 NO?????
-	// movl (%esp), %eax
-	cmpl $0, %eax // process result
-	jge final
-	// movl %eax, %errno // CONSULTAR COMO PASAR EL VALOR DE ERROR A ERRNO
-	movl $-1, %eax
-final:	ret //return
-
-ENTRY(gettime)
-	movl $10, %eax // put identifier of the syscall in eax
-	int $0x80 // generate trap
-	// AQUI EL RESULTADO DE INT DEBERIA ESTAR EN ESP + 0 NO?????
-	// movl (%esp), %eax
-	cmpl $0, %eax // process result
-	jge final1
-	// movl %eax, %errno // CONSULTAR COMO PASAR EL VALOR DE ERROR A ERRNO
-	movl $-1, %eax
-final1:	ret //return
-
-
-
-
-
-
-
-
-
-
-
+// PREGUNTA: NO ME HA QUEDADO CLARO DONDE DEFINIR LOS ERRORES

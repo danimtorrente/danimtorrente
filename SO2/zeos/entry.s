@@ -12,3 +12,5 @@
 # 6 "entry.S" 2
 # 1 "include/segment.h" 1
 # 7 "entry.S" 2
+# 51 "entry.S"
+      movl %edx, %ds; movl %edx, %es

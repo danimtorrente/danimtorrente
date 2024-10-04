@@ -47,7 +47,7 @@
       pushl %ebx; \
       pushl %ecx; \
       pushl %edx; \
-      movl $__KERNEL_DS, %edx;    \
+      movl $__KERNEL_DS, %edx;    \ // ya lo restauro en el restore all con los pop, no hace falta que haga movw
       movl %edx, %ds;           \
       movl %edx, %es
 

@@ -15,10 +15,8 @@
 # 6 "include/entry.h" 2
 # 3 "interrupt_handler.S" 2
 # 1 "include/exit.h" 1
-
-
 # 1 "include/asm.h" 1
-# 4 "include/exit.h" 2
+# 2 "include/exit.h" 2
 # 4 "interrupt_handler.S" 2
 
 
@@ -30,12 +28,11 @@
  ret
 
 
-
 .globl keyboard_handler; .type keyboard_handler, @function; .align 0; keyboard_handler:
  pushl %gs; pushl %fs; pushl %es; pushl %ds; pushl %eax; pushl %ebp; pushl %edi; pushl %esi; pushl %ebx; pushl %ecx; pushl %edx; movl $0x18, %edx; movl %edx, %ds; movl %edx, %es
  movb $0x20, %al ; outb %al, $0x20 ;
  call keyboard_routine
-
+ popl %edx; popl %ecx; popl %ebx; popl %esi; popl %edi; popl %ebp; popl %eax; popl %ds; popl %es; popl %fs; popl %gs
  iret
 
 .globl system_call; .type system_call, @function; .align 0; system_call:
@@ -48,7 +45,7 @@
  jmp fin
 err: movl $-38, %EAX
 fin: movl %EAX, 0x18(%esp)
-
+ popl %edx; popl %ecx; popl %ebx; popl %esi; popl %edi; popl %ebp; popl %eax; popl %ds; popl %es; popl %fs; popl %gs
  iret
 
 .globl syscall_handler_sysenter; .type syscall_handler_sysenter, @function; .align 0; syscall_handler_sysenter:
@@ -68,7 +65,7 @@ sysenter_err:
  movl $-38, %EAX
 sysenter_fin:
  movl %EAX, 0x18(%ESP)
-
+ popl %edx; popl %ecx; popl %ebx; popl %esi; popl %edi; popl %ebp; popl %eax; popl %ds; popl %es; popl %fs; popl %gs
  movl (%ESP), %EDX
  movl 12(%ESP), %ECX
  sti
@@ -78,32 +75,5 @@ sysenter_fin:
  pushl %gs; pushl %fs; pushl %es; pushl %ds; pushl %eax; pushl %ebp; pushl %edi; pushl %esi; pushl %ebx; pushl %ecx; pushl %edx; movl $0x18, %edx; movl %edx, %ds; movl %edx, %es
  movb $0x20, %al ; outb %al, $0x20 ;
  call clock_routine
-
+ popl %edx; popl %ecx; popl %ebx; popl %esi; popl %edi; popl %ebp; popl %eax; popl %ds; popl %es; popl %fs; popl %gs
  iret
-
-
-
-.globl write; .type write, @function; .align 0; write:
- movl 4(%esp), %edx
- movw 8(%esp), %cx
- movl 12(%esp), %ebx
- movl $4, %eax
- int $0x80
-
-
- cmpl $0, %eax
- jge final
-
- movl $-1, %eax
-final: ret
-
-.globl gettime; .type gettime, @function; .align 0; gettime:
- movl $10, %eax
- int $0x80
-
-
- cmpl $0, %eax
- jge final1
-
- movl $-1, %eax
-final1: ret
