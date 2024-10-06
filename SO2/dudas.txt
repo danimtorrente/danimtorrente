@@ -1,21 +1,8 @@
+-No me funciona el write() y no se por que, ya no se que mirar.
+-Al hacer el make el lb me da algun mensaje raro
+-Con lo del keyboard, me hace el display de todo pero con las teclas que no conoce no hace display de c, deberia programar
+yo esa funcionalidad o es que me da algun error?
 
-BOOTLOADER
 
--Que es el sector 0? Pensaba que era el bootloader pero lo mueve justo a la direccion en que termina el boot sector. 
- Es la primera particion del sistema? o como?
 
--Para imprimir el mensaje carregant hacen un int 0x10, si este kernel esta basado en linux no deberia ser 0x80? O como lo 
-configuramos nosotros da igual?
 
--Que es A20?
-
--Comando de assembler cli supongo que hace que no te lleguen mas interrupciones
-
-BUILD.C
-
--Que hace exactamente build? Yo tenia entendido que tiene que linkear los archivos objeto de user, system y boot. Primero porque 
-esos binarios son .out y no .o, segundo, lo que hace es simplemente mirar el tamaño de user y system y anotarlo en el bootloader?
-
-BREAKPOINTS
--El paso de los breakpoints no acabo de entender los resultados. Luego no se si lo he hecho bien ni si miro donde tengo que mirar.
--Respecto a las flags, presupongo que es el O2, que la optimizacion del codigo hace que la suma se haga inine.

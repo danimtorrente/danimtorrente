@@ -3,7 +3,7 @@
  */
 
 #include <libc.h>
-
+#include "errno.h"
 #include <types.h>
 
 int errno;
@@ -43,3 +43,9 @@ int strlen(char *a)
   return i;
 }
 
+void perror(void) {
+	char *message = "ENOSYS ERROR\n";
+	int len = strlen(message);
+	if (errno == -38) write(1, message, len); //0 stdin, 1stdout, 2 stderror
+	return;
+}

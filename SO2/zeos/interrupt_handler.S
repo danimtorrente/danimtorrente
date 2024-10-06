@@ -4,6 +4,7 @@
 
 // FAST SYS_CALLS INIT
 ENTRY(writeMSR) // two parameters: MSRnum, value to store in that MSR
+	//HACE FALTA ACTUALIZAR EBP ? NO NO? NO HAGO USO DE LA PILA AQUI
 	movl 4(%esp), %ecx
 	movl 8(%esp), %eax
 	movl 12(%esp), %edx
@@ -60,5 +61,3 @@ ENTRY(clock_handler)
 	call clock_routine
 	RESTORE_ALL
 	iret
-
-// PREGUNTA: NO ME HA QUEDADO CLARO DONDE DEFINIR LOS ERRORES

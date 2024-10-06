@@ -21,6 +21,7 @@
 
 
 .globl writeMSR; .type writeMSR, @function; .align 0; writeMSR:
+
  movl 4(%esp), %ecx
  movl 8(%esp), %eax
  movl 12(%esp), %edx

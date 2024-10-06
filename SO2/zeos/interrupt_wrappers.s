@@ -10,24 +10,37 @@
 
 
 .globl write; .type write, @function; .align 0; write:
- movl 4(%esp), %edx
- movw 8(%esp), %cx
- movl 12(%esp), %ebx
+ pushl %ebp
+ movl %esp, %ebp
+ pushl %ebx
+
+ movl 8(%esp), %edx
+ movl 12(%esp), %ecx
+ movl 16(%esp), %ebx
+
  movl $4, %eax
  int $0x80
  cmpl $0, %eax
  jge final
  movl %eax, errno
  movl $-1, %eax
-final: ret
 
+final: popl %ebx
+ movl %ebp, %esp
+ popl %ebp
+ ret
 
 .globl gettime; .type gettime, @function; .align 0; gettime:
+ pushl %ebp
+ movl %esp, %ebp
+
  movl $10, %eax
  int $0x80
-
  cmpl $0, %eax
  jge final1
  movl %eax, errno
  movl $-1, %eax
-final1: ret
+
+final1: movl %ebp, %esp
+ popl %ebp
+ ret

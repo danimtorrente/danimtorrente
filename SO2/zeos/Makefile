@@ -76,7 +76,7 @@ interrupt_wrappers.s: interrupt_wrappers.S $(INCLUDEDIR)/asm.h
 sys_call_table.s: sys_call_table.S $(INCLUDEDIR)/asm.h $(INCLUDEDIR)/segment.h
 	$(CPP) $(ASMFLAGS) -o $@ $<
 
-user.o: user.c $(INCLUDEDIR)/libc.h
+user.o: user.c $(INCLUDEDIR)/libc.h $(INCLUDEDIR)/errno.h
 	$(CC) $(CFLAGS) -O0 -c user.c -o user.o
 
 suma.s: suma.S $(INCLUDEDIR)/asm.h $(INCLUDEDIR)/segment.h
