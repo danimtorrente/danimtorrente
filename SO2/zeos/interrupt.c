@@ -109,7 +109,8 @@ void keyboard_routine() { // REVISAR
 	unsigned char input = inb(port);
 	unsigned char mb = input >> 7;
 	if (!mb) {
-		printc_xy(0,0,char_map[input & 0x7F]); // printc_xy(Byte mx, Byte my, char c)
+		if (char_map[input & 0x7F] == '\0') printc_xy(0,0,'C');
+		else printc_xy(0,0,char_map[input & 0x7F]); // printc_xy(Byte mx, Byte my, char c)
 	}
 }
 

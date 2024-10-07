@@ -5,7 +5,6 @@
 
 // FAST SYS_CALLS INIT
 ENTRY(writeMSR) // two parameters: MSRnum, value to store in that MSR
-	//HACE FALTA ACTUALIZAR EBP ? NO NO? NO HAGO USO DE LA PILA AQUI
 	movl 4(%esp), %ecx
 	movl 8(%esp), %eax
 	movl 12(%esp), %edx
