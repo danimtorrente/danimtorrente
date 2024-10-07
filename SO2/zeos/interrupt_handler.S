@@ -1,4 +1,5 @@
 #include "asm.h"
+#include "segment.h"
 #include "entry.h"
 #include "exit.h"
 

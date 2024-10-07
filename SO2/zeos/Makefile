@@ -67,7 +67,7 @@ bootsect.s: bootsect.S
 entry.s: entry.S $(INCLUDEDIR)/asm.h $(INCLUDEDIR)/segment.h
 	$(CPP) $(ASMFLAGS) -o $@ $<
 
-interrupt_handler.s: interrupt_handler.S $(INCLUDEDIR)/asm.h
+interrupt_handler.s: interrupt_handler.S $(INCLUDEDIR)/asm.h $(INCLUDEDIR)/segment.h $(INCLUDEDIR)/entry.h $(INCLUDEDIR)/exit.h
 	$(CPP) $(ASMFLAGS) -o $@ $<
 
 interrupt_wrappers.s: interrupt_wrappers.S $(INCLUDEDIR)/asm.h

@@ -2,7 +2,7 @@
 -Al hacer el make el lb me da algun mensaje raro
 -Con lo del keyboard, me hace el display de todo pero con las teclas que no conoce no hace display de c, deberia programar
 yo esa funcionalidad o es que me da algun error?
-
+-Es necesario cada vez que añado un punto h a un fichero añadirlo al makefile para ese fichero?
 
 
 

@@ -6,6 +6,8 @@
 # 1 "interrupt_handler.S"
 # 1 "include/asm.h" 1
 # 2 "interrupt_handler.S" 2
+# 1 "include/segment.h" 1
+# 3 "interrupt_handler.S" 2
 # 1 "include/entry.h" 1
 
 
@@ -13,11 +15,11 @@
 
 # 1 "include/segment.h" 1
 # 6 "include/entry.h" 2
-# 3 "interrupt_handler.S" 2
+# 4 "interrupt_handler.S" 2
 # 1 "include/exit.h" 1
 # 1 "include/asm.h" 1
 # 2 "include/exit.h" 2
-# 4 "interrupt_handler.S" 2
+# 5 "interrupt_handler.S" 2
 
 
 .globl writeMSR; .type writeMSR, @function; .align 0; writeMSR:
