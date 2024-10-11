@@ -61,3 +61,10 @@ ENTRY(clock_handler)
 	call clock_routine
 	RESTORE_ALL
 	iret
+/*
+ENTRY(page_handler) // PASAR PARAMETRO ERROR Y DIRECCION EIP QUE SE ACCEDE A TRAVES DE LA PILA
+	pushl %esp, %edx // mover primer elemento de la pila como parametro que es el error
+	pushl 4(%esp), %ecx // mover segundo elemento de la pila como paramtero que es la direccion (eip)
+	call page_routine
+	iret
+*/

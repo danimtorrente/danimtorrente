@@ -14,9 +14,9 @@
  movl %esp, %ebp
  pushl %ebx
 
- movl 8(%esp), %edx
- movl 12(%esp), %ecx
- movl 16(%esp), %ebx
+ movl 8(%ebp), %edx
+ movl 12(%ebp), %ecx
+ movl 16(%ebp), %ebx
 
  movl $4, %eax
  int $0x80

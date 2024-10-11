@@ -11,6 +11,8 @@
 
 #include <zeos_interrupt.h>
 
+#include "libc.h"
+
 Gate idt[IDT_ENTRIES];
 Register    idtR;
 int zeos_ticks;
@@ -37,6 +39,7 @@ void system_call();
 void writeMSR(unsigned int msr, unsigned int low, unsigned int high); // REVISAR
 void syscall_handler_sysenter();
 void clock_handler();
+// void page_handler(); //revisar si tiene parametros porque creo que tiene el del error que son 4 bytes
 
 void setInterruptHandler(int vector, void (*handler)(), int maxAccessibleFromPL)
 {
@@ -95,6 +98,8 @@ void setIdt()
   setInterruptHandler(0x80, system_call, 0); // verificar parametros
   setInterruptHandler(32, clock_handler, 0);
   setTrapHandler(0x80, system_call, 3);
+//  setInterruptHandler(14, page_handler, 0);
+//  setTrapHandler(14, page_handler, 3);
   set_idt_reg(&idtR);
 
   writeMSR(0x174, tss.ss0, 0);
@@ -104,7 +109,7 @@ void setIdt()
 }
 
 
-void keyboard_routine() { // REVISAR
+void keyboard_routine() {
 	int port = 0x60;
 	unsigned char input = inb(port);
 	unsigned char mb = input >> 7;
@@ -118,3 +123,13 @@ void clock_routine() {
 	zeos_ticks += 1;
 	zeos_show_clock();
 }
+
+
+/*
+void page_routine(int error, int adress) {
+	char mess[] = "Process generates a PAGE FAULT exception at EIP: 0x%d", adress:
+	int len = strlen(mess);
+	sys_write_console(&mess[0], len);
+	while(1);
+}
+*/
