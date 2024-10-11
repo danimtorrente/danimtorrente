@@ -79,3 +79,9 @@ sysenter_fin:
  call clock_routine
  popl %edx; popl %ecx; popl %ebx; popl %esi; popl %edi; popl %ebp; popl %eax; popl %ds; popl %es; popl %fs; popl %gs
  iret
+
+.globl page_handler; .type page_handler, @function; .align 0; page_handler:
+ movl (%esp), %edx
+ movl 4(%esp), %ecx
+ call page_routine
+ iret

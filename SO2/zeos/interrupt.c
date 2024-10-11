@@ -7,11 +7,11 @@
 
 #include <hardware.h>
 #include <io.h>
-#include "mm.h"
+#include <libc.h>
+#include <mm.h>
 
+#include <devices.h>
 #include <zeos_interrupt.h>
-
-#include "libc.h"
 
 Gate idt[IDT_ENTRIES];
 Register    idtR;
@@ -36,10 +36,9 @@ char char_map[] =
 
 void keyboard_handler();
 void system_call();
-void writeMSR(unsigned int msr, unsigned int low, unsigned int high); // REVISAR
-void syscall_handler_sysenter();
 void clock_handler();
-// void page_handler(); //revisar si tiene parametros porque creo que tiene el del error que son 4 bytes
+void page_handler(); //revisar si tiene parametros porque creo que tiene el del error que son 4 bytes
+
 
 void setInterruptHandler(int vector, void (*handler)(), int maxAccessibleFromPL)
 {
@@ -98,14 +97,9 @@ void setIdt()
   setInterruptHandler(0x80, system_call, 0); // verificar parametros
   setInterruptHandler(32, clock_handler, 0);
   setTrapHandler(0x80, system_call, 3);
-//  setInterruptHandler(14, page_handler, 0);
-//  setTrapHandler(14, page_handler, 3);
+  setInterruptHandler(14, page_handler, 0);
+  setTrapHandler(14, page_handler, 3);
   set_idt_reg(&idtR);
-
-  writeMSR(0x174, tss.ss0, 0);
-  writeMSR(0x175, tss.esp0, 0);
-  unsigned int address_sysenter = (unsigned int)&syscall_handler_sysenter;
-  writeMSR(0x176, address_sysenter, 0); // REVISAR SINTAXIS
 }
 
 
@@ -124,12 +118,17 @@ void clock_routine() {
 	zeos_show_clock();
 }
 
+void page_routine(int error, int adress) { // NO EM DEIXA UTILITZAR FUNCIONS DE LIBC.C
+	char mess[] = "Process generates a PAGE FAULT exception at EIP: 0x\0";
+	//int len = strlen(mess);
+	sys_write_console(mess, 54); //sys_write_console(mess, len);
 
-/*
-void page_routine(int error, int adress) {
-	char mess[] = "Process generates a PAGE FAULT exception at EIP: 0x%d", adress:
-	int len = strlen(mess);
-	sys_write_console(&mess[0], len);
-	while(1);
+	//char* num;
+	//itoa(adress, num);
+	//len = strlen(num);
+
+	//sys_write_console(num, len);
+	while(1) {};
 }
-*/
+
+///////////////////////////////////////////////////////////////////////////////////////

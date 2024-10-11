@@ -9,6 +9,9 @@
 
 
 
+
+
+
 .globl write; .type write, @function; .align 0; write:
  pushl %ebp
  movl %esp, %ebp

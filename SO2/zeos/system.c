@@ -18,6 +18,8 @@ int (*usr_main)(void) = (void *) (PAG_LOG_INIT_CODE*PAGE_SIZE);
 unsigned int *p_sys_size = (unsigned int *) KERNEL_START;
 unsigned int *p_usr_size = (unsigned int *) KERNEL_START+1;
 unsigned int *p_rdtr = (unsigned int *) KERNEL_START+2;
+void writeMSR(unsigned int msr, unsigned int low, unsigned int high);
+void syscall_handler_sysenter();
 
 /************************/
 /** Auxiliar functions **/
@@ -68,7 +70,7 @@ int __attribute__((__section__(".text.main")))
   // 'ds' register to access the address... but we are not ready for that yet
   // (we are still in real mode).
   set_seg_regs(__KERNEL_DS, __KERNEL_DS, (DWord) &task[4]);
-  
+ 
   /*** DO *NOT* ADD ANY CODE IN THIS ROUTINE BEFORE THIS POINT ***/
 
   printk("Kernel Loaded!    ");
@@ -79,6 +81,11 @@ int __attribute__((__section__(".text.main")))
   setGdt(); /* Definicio de la taula de segments de memoria */
   setIdt(); /* Definicio del vector de interrupcions */
   setTSS(); /* Definicio de la TSS */
+
+  writeMSR(0x174, tss.ss0, 0);
+  writeMSR(0x175, tss.esp0, 0);
+  unsigned int address_sysenter = (unsigned int)&syscall_handler_sysenter;
+  writeMSR(0x176, address_sysenter, 0); // REVISAR SINTAXIS
 
   /* Initialize Memory */
   init_mm();
@@ -98,7 +105,7 @@ int __attribute__((__section__(".text.main")))
   copy_data((void *) KERNEL_START + *p_sys_size, (void*)L_USER_START, *p_usr_size);
 
 
-  printk("Entering user mode... Welcome Dani");
+  printk("Entering user mode... Welcome");
 
   enable_int();
   /*
