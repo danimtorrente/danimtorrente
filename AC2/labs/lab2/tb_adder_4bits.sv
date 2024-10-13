@@ -68,6 +68,24 @@ module tb_adder_4bits;
         #500 $display("(%0d) TO: x=%b y=%b Cin=%b -> Sum=%b Cout=%b\n",$time,x,y,c_in,s,c_out);
     endtask
 
+    task custom_testing(
+	input logic [WIDTH-1:0] DNI_u,
+	input logic [WIDTH-1:0] DNI_d,
+    );
+
+        $display(" ------------------------------------------------");
+//        $display(" Custom test: x = %b y = %b" , %DNI_u, %DNI_d);
+        $display(" ------------------------------------------------");
+
+	clk = 1; x = DNI_u; y = DNI_d; c_in = 1;
+	#500 clk = 0;
+        #500 $display("(%0d) TO: x=%b y=%b Cin=%b -> Sum=%b Cout=%b\n",$time,x,y,c_in,s,c_out);
+	//clk = 1; x = DNI_u; y = DNI_d; c_in = 1;
+	//#500 clk = 0;
+	//#500 $display("");
+    endtask
+
+
     // Main execution flow of the testbench
     initial begin 
         // wavefrom generation
@@ -79,7 +97,10 @@ module tb_adder_4bits;
         transition_test(    
             4'b0000,4'b0000,1'b0,  // from (x,y,c)
             4'b0001,4'b0001,1'b1); // to   (x,y,c)
-        $finish();
+        custom_testing(
+	    4'b1100,4'b0001 //DNI1 = 49456716%16 = 12 / DNI2 = 49456721%16 = 1 
+	);
+	$finish();
     end
                  
 endmodule
