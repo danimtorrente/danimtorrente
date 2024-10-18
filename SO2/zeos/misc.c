@@ -1,14 +1,6 @@
-/*
- * libc.c 
- */
 
-#include <libc.h>
-#include "errno.h"
-#include <types.h>
+#include "misc.h"
 
-int errno;
-
-/*
 void itoa(int a, char *b)
 {
   int i, i1;
@@ -42,11 +34,4 @@ int strlen(char *a)
   while (a[i]!=0) i++;
   
   return i;
-}
-*/
-void perror(void) {
-	char *message = "ENOSYS ERROR\n";
-	int len = strlen(message);
-	if (errno == -38) write(1, &message[0], len); //0 stdin, 1stdout, 2 stderror
-	return;
 }

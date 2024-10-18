@@ -56,11 +56,12 @@ int sys_write(int fd, char * buffer, int size) {
 	res = check_fd(fd, 1);
 	if (buffer == NULL) res = -1;// CODIGO ERROR?
 	if (size < 0) res = -1; // CODIGO ERROR?
-	// copy_from_user(buffer, *buffer+size???, size)
+	// CREAR VECTOR Y COPIAR CACHO A CACHO DE USUARIO A MEMORIA
+	copy_from_user(buffer, buffer+size, size); // REVISAR
 	if (res >= 0) {
 		res = sys_write_console(buffer, size);
 	}
-	//copy_to_user(buffer, *buffer+size???, size)
+	copy_to_user(buffer, buffer+size, size); // REVISAR
 	return res;
 }
 

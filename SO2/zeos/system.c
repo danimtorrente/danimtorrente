@@ -82,7 +82,7 @@ int __attribute__((__section__(".text.main")))
   setIdt(); /* Definicio del vector de interrupcions */
   setTSS(); /* Definicio de la TSS */
 
-  writeMSR(0x174, tss.ss0, 0);
+  writeMSR(0x174, __KERNEL_CS, 0); // TIENE QUE APUNTAR AL SEGMENTO DE CODIGO: __KERNEL_CS
   writeMSR(0x175, tss.esp0, 0);
   unsigned int address_sysenter = (unsigned int)&syscall_handler_sysenter;
   writeMSR(0x176, address_sysenter, 0); // REVISAR SINTAXIS

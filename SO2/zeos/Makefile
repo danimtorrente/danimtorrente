@@ -35,6 +35,7 @@ SYSOBJ = \
 	utils.o \
 	hardware.o \
 	list.o \
+	misc.o \
 
 LIBZEOS = -L . -l zeos
 
@@ -43,6 +44,7 @@ USROBJ = \
 	libc.o \
 	suma.o \
 	interrupt_wrappers.o \
+	misc.o \
 	# libjp.a \
 
 all:zeos.bin
@@ -78,6 +80,8 @@ sys_call_table.s: sys_call_table.S $(INCLUDEDIR)/asm.h $(INCLUDEDIR)/segment.h
 
 user.o: user.c $(INCLUDEDIR)/libc.h $(INCLUDEDIR)/errno.h
 	$(CC) $(CFLAGS) -O0 -c user.c -o user.o
+
+misc.o: misc.c $(INCLUDEDIR)/misc.h
 
 suma.s: suma.S $(INCLUDEDIR)/asm.h $(INCLUDEDIR)/segment.h
 	$(CPP) $(ASMFLAGS) -o $@ $<

@@ -7,7 +7,7 @@
 
 #include <hardware.h>
 #include <io.h>
-#include <libc.h>
+#include <misc.h>
 #include <mm.h>
 
 #include <devices.h>
@@ -94,11 +94,11 @@ void setIdt()
   set_handlers();
 
   setInterruptHandler(33, keyboard_handler, 0); // verificar parametros
-  setInterruptHandler(0x80, system_call, 0); // verificar parametros
+ // setInterruptHandler(0x80, system_call, 0); // verificar parametros
   setInterruptHandler(32, clock_handler, 0);
   setTrapHandler(0x80, system_call, 3);
   setInterruptHandler(14, page_handler, 0);
-  setTrapHandler(14, page_handler, 3);
+//  setTrapHandler(14, page_handler, 0);
   set_idt_reg(&idtR);
 }
 
