@@ -10,10 +10,11 @@
 #include <stats.h>
 
 int write(int fd, char *buffer, int size);
-/*
-AHORA ESTAN DEFINIDAS EN MISC.H
+
 
 void itoa(int a, char *b);
+/*
+AHORA ESTAN DEFINIDAS EN MISC.H
 
 int strlen(char *a);
 */

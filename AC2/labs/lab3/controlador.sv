@@ -1,7 +1,7 @@
 module controlador #(
   parameter WIDTH = 64,
   parameter NUMREG = 8,
-  parameter NUMSUMA = 8,
+  parameter NUMSUMA = 6,
   localparam INDEX_SIZE = $clog2(NUMREG)
 )(
   input logic 					clk_i, 		// Senyal de reloj
@@ -49,9 +49,30 @@ logic [INDEX_SIZE-1:0] idB_q, proximo_idB_d; // contador de id B
 logic [INDEX_SIZE-1:0] id_q, proximo_id_d; // contador de id escritura
 
 // Logica de proximo estado para los contadores
-always_comb begin
-  //Codigo a completar
+always_comb begin // ESTO ES LO QUE SE HA MODIFICADO
+  if (!rstn_i) begin // Reset
+    proximo_cnt_d = 'b0;
+    proximo_idA_d = 4'h1;
+    proximo_idB_d = 'b0;
+    proximo_id_d = 'b0;
+  end else if (cnt_q == 2*NUMSUMA) begin // Fin del proceso
+    proximo_cnt_d = 'b0;
+    proximo_idA_d = 4'h1;
+    proximo_idB_d = 'b0;
+    proximo_id_d = 'b0;
+  end else begin // Operaciones normales
+    proximo_cnt_d = cnt_q + 4'h1;
+    proximo_id_d = 'b0;
+    if (!proximo_estado_d) begin 
+      proximo_idA_d = idA_q + 4'h1;
+      proximo_idB_d = 'b0;
+    end else begin
+      proximo_idA_d = idA_q;
+      proximo_idB_d = 'b0;
+    end
+  end
 end
+
 
 // Actualizacion de los automatas secundarios
 always_ff @(posedge clk_i, negedge rstn_i) begin

@@ -63,8 +63,13 @@ ENTRY(clock_handler)
 	iret
 
 ENTRY(page_handler) // PASAR PARAMETRO ERROR Y DIRECCION EIP QUE SE ACCEDE A TRAVES DE LA PILA
-	movl (%esp), %edx // mover primer elemento de la pila como parametro que es el error
-	movl 4(%esp), %ecx  // mover segundo elemento de la pila como paramtero que es la direccion (eip)
+// AL FER AIXO EM DONAVA ERROR, PER QUE? COM QUE ES PAGE FAULT NO PUC MODIFICAR RES DE MEMORIA INCLOS LA PILA?
+//	pushl %ebp
+//	movl %esp, %ebp
+// NO ENTENC PERQUE FUNCIONA SENSE LES SEGUENTS DUES INSTRUCCIONS, PENSAVA QUE L'ERROR I LA DIRECCIO ES PASSAVA A LA PILA
+// I NO A REGISTRES
+//	movl (%ebp), %edx // mover primer elemento de la pila como parametro que es el error
+//	movl 4(%ebp), %ecx  // mover segundo elemento de la pila como paramtero que es la direccion (eip)
 	call page_routine
 	iret
 

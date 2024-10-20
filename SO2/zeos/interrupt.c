@@ -118,17 +118,21 @@ void clock_routine() {
 	zeos_show_clock();
 }
 
-void page_routine(int error, int adress) { // NO EM DEIXA UTILITZAR FUNCIONS DE LIBC.C
-	char mess[] = "Process generates a PAGE FAULT exception at EIP: 0x\0";
-	//int len = strlen(mess);
-	sys_write_console(mess, 54); //sys_write_console(mess, len);
+void page_routine(int error, int address) {
 
-	//char* num;
-	//itoa(adress, num);
-	//len = strlen(num);
+	char mess[] = "Process generates a PAGE FAULT exception at EIP: 0x";
+	int len = strlen(mess);
+	sys_write_console(mess, len);
+	len = 0;
+	char num[30];
+	itoa(address, num);
+	len = strlen(num);
+	sys_write_console(num, len);
 
-	//sys_write_console(num, len);
-	while(1) {};
+//	printk(mess);
+//	printk(num);
+
+	while(1);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////

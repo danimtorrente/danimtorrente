@@ -94,12 +94,15 @@ module tb_adder_4bits;
 
         // Functionality testing of the 
         basic_functional_testing();
+	transition_test(
+            4'b0000,4'b0000,1'b0,  // from (x,y,c)
+            4'b0000,4'b0000,1'b1); // to   (x,y,c)
         transition_test(    
             4'b0000,4'b0000,1'b0,  // from (x,y,c)
             4'b0001,4'b0001,1'b1); // to   (x,y,c)
-        custom_testing(
-	    4'b1100,4'b0001 //DNI1 = 49456716%16 = 12 / DNI2 = 49456721%16 = 1 
-	);
+//        custom_testing(
+//	    4'b1100,4'b1101 //DNI1 = 49456716%16 = 12 / DNI2 = 41533021%16 = 13 
+//	);
 	$finish();
     end
                  

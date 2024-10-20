@@ -17,7 +17,9 @@ struct task_struct *list_head_to_task_struct(struct list_head *l)
 #endif
 
 extern struct list_head blocked;
-
+// ESTAS VARIABLES NO LAS HE DECLARADO EN EL .H, IGUAL HABRIA QUE HACERLO
+//extern struct list_head freequeue;
+//extern struct list_head readyqueue;
 
 /* get_DIR - Returns the Page Directory address for task 't' */
 page_table_entry * get_DIR (struct task_struct *t) 
@@ -55,17 +57,26 @@ void cpu_idle(void)
 
 void init_idle (void)
 {
-
+/*
+*/
 }
 
 void init_task1(void)
 {
+/*
+*/
 }
 
 
 void init_sched()
 {
-
+/*
+	INIT_LIST_HEAD(&freequeue); // init free queue
+	for (int i = 0; i < NR_TASKS; ++i) list_add(&(task[i].list), &freequeue); // add tasks to free queue
+	INIT_LIST_HEAD(&readyqueue); // init ready queue
+	set_pe_flag(); // activate paging mecanism
+	
+*/
 }
 
 struct task_struct* current()

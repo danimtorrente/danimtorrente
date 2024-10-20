@@ -81,7 +81,12 @@ sysenter_fin:
  iret
 
 .globl page_handler; .type page_handler, @function; .align 0; page_handler:
- movl (%esp), %edx
- movl 4(%esp), %ecx
+
+
+
+
+
+
+
  call page_routine
  iret

@@ -12,20 +12,25 @@ module BufferCircular #(
   output logic 				vacia_o, 		// Senyal de cola vacıa
   output logic 				llena_o 		// Senyal de cola llena
 );
+
 // Instanciamos los registros WIDTHxNUM
 logic [WIDTH-1:0] registers_q [NUM-1:0];
+
 // Instanciamos punteros de control
 logic [INDEX_SIZE-1:0] cola_q, cabeza_q;
+
 // Instanciamos senyales de control
 logic permiso_insercion, permiso_delecion;
 logic [INDEX_SIZE:0] num_q;
 
 // Logica de insercion
-assign permiso_insercion = (num_q <) & ( );
-// L´ogica de delecion
-assign permiso_delecion = (num_q > ) & ( );
+assign permiso_insercion = (num_q < NUM) & (insercion_i);
+
+// Logica de delecion
+assign permiso_delecion = (num_q > 0) & (delecion_i);
+
 // Logica de Lectura. Solo lee si hay un dato
-assign dato_o = (vacia_o) ? 'h0 : registers_q[ ];
+assign dato_o = (vacia_o) ? 'h0 : registers_q[cabeza_q];
 
 // Logica de Escritura.
 always_ff @(posedge clk_i, negedge rstn_i) begin
@@ -34,7 +39,7 @@ always_ff @(posedge clk_i, negedge rstn_i) begin
       registers_q[i] <= 'h0;
     end
   end else if (permiso_insercion) begin
-    registers_q[ ] <= ;
+    registers_q[cola_q] <= dato_i;
   end
 end
 
@@ -45,9 +50,9 @@ always_ff @(posedge clk_i, negedge rstn_i) begin
     cola_q <= 'h0;
     num_q <= 'h0;
   end else begin
-    cabeza_q <= cabeza_q + {2'b0, };
-    cola_q <= cola_q + {2'b0, };
-    num_q <= num_q + {3'b0, } - {3'b0, };
+    cabeza_q <= cabeza_q + {2'b0, permiso_delecion};
+    cola_q <= cola_q + {2'b0, permiso_insercion};
+    num_q <= num_q + {3'b0, permiso_insercion} - {3'b0, permiso_delecion};
   end
 end
 

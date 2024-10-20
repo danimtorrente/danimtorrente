@@ -5,7 +5,7 @@ module accum_nbits #(parameter WIDTH = 32) (
 	output logic [WIDTH-1:0] y_o // y_o de i se guarda en el registro, t_o de i+1 se suma a x_i
 );
 
-	logic [WIDTH-1:0] aux;
+	logic [WIDTH-1:0] aux; // Habria que inicializarlo a zero?
 	
 	adder_nbits #(.WIDTH(WIDTH)) almendras3( 
 		.x_i(x_i),

@@ -8,7 +8,7 @@
 
 int errno;
 
-/*
+
 void itoa(int a, char *b)
 {
   int i, i1;
@@ -32,7 +32,7 @@ void itoa(int a, char *b)
   }
   b[i]=0;
 }
-
+/*
 int strlen(char *a)
 {
   int i;
