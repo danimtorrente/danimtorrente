@@ -17,7 +17,7 @@ struct task_struct *list_head_to_task_struct(struct list_head *l)
 #endif
 
 extern struct list_head blocked;
-// ESTAS VARIABLES NO LAS HE DECLARADO EN EL .H, IGUAL HABRIA QUE HACERLO
+// ESTAS VARIABLES NO LAS HE DECLARADO EN EL .H, HABRIA QUE HACERLO
 //extern struct list_head freequeue;
 //extern struct list_head readyqueue;
 
@@ -74,8 +74,8 @@ void init_sched()
 	INIT_LIST_HEAD(&freequeue); // init free queue
 	for (int i = 0; i < NR_TASKS; ++i) list_add(&(task[i].list), &freequeue); // add tasks to free queue
 	INIT_LIST_HEAD(&readyqueue); // init ready queue
-	set_pe_flag(); // activate paging mecanism
 	
+
 */
 }
 
