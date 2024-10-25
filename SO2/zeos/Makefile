@@ -36,6 +36,8 @@ SYSOBJ = \
 	hardware.o \
 	list.o \
 	misc.o \
+	mem.o \
+	
 
 LIBZEOS = -L . -l zeos
 
@@ -84,6 +86,9 @@ user.o: user.c $(INCLUDEDIR)/libc.h $(INCLUDEDIR)/errno.h
 misc.o: misc.c $(INCLUDEDIR)/misc.h
 
 suma.s: suma.S $(INCLUDEDIR)/asm.h $(INCLUDEDIR)/segment.h
+	$(CPP) $(ASMFLAGS) -o $@ $<
+
+mem.s: mem.S $(INCLUDEDIR)/asm.h
 	$(CPP) $(ASMFLAGS) -o $@ $<
 
 interrupt.o:interrupt.c $(INCLUDEDIR)/interrupt.h $(INCLUDEDIR)/segment.h $(INCLUDEDIR)/types.h

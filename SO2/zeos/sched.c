@@ -16,11 +16,13 @@ struct task_struct *list_head_to_task_struct(struct list_head *l)
 }
 #endif
 
-extern struct list_head blocked;
-// ESTAS VARIABLES NO LAS HE DECLARADO EN EL .H, HABRIA QUE HACERLO
-//extern struct list_head freequeue;
-//extern struct list_head readyqueue;
-
+extern struct list_head blocked; // POR QUE NO ESTA DEFINIDO EN EL .H PERO SI TIENE EL EXTERN?
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+extern struct list_head freequeue;
+extern struct list_head readyqueue;
+void idle_prep(); // en mem.S
+void init_prep(); // en mem.S
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /* get_DIR - Returns the Page Directory address for task 't' */
 page_table_entry * get_DIR (struct task_struct *t) 
 {
@@ -55,28 +57,46 @@ void cpu_idle(void)
 	}
 }
 
-void init_idle (void)
+void init_idle (void) // SE EJECUTA SIEMPRE EN MODO SISTEMA
 {
-/*
-*/
+
+// ESTO DEBERIA SER STRUCT O UNION? PORQUE FREEQUEUE TIENE LISTAS QUE ESTAN CONTENIDAS EN EL TASK UNION TAMBIEN
+// GET AN AVAILABLE TASK_UNION FROM FREEQUEUE
+struct list_head *first_elem = list_first(freequeue);
+struct task_struct idle = list_entry(first_elem, task_struct, list);
+// BORRAR FIRST_ELEM DE LA FREEQUEUE
+
+// PID = 0
+idle.PID = 0;
+
+//usar allocate_DIR
+// INIT dir_pages_baseAaddr with a new directory  to store the prcess address space using allocate_DIR
+
+//llamar a idle_prep();
+// call a .S function to rellocate the stack?
+
+// inicializar la task_struct idle_task
+// init idle_task
+//añadirla a la READYQUEUE
 }
 
 void init_task1(void)
 {
 /*
+// PID = 1
+// INIT dir_pages_baseAaddr with a new directory  to store the prcess address space using allocate_DIR
+// Complete the init of address space using set_user_pages (mm.c).
+// Update Tss for int and MSR for sysenters
+// set_cr3(page_table_entry *dir) [mm.c] function
 */
 }
 
 
 void init_sched()
 {
-/*
 	INIT_LIST_HEAD(&freequeue); // init free queue
 	for (int i = 0; i < NR_TASKS; ++i) list_add(&(task[i].list), &freequeue); // add tasks to free queue
 	INIT_LIST_HEAD(&readyqueue); // init ready queue
-	
-
-*/
 }
 
 struct task_struct* current()
