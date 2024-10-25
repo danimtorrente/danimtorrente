@@ -22,6 +22,7 @@ extern struct list_head freequeue;
 extern struct list_head readyqueue;
 void idle_prep(); // en mem.S
 void init_prep(); // en mem.S
+struct task_struct * idle_task;
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /* get_DIR - Returns the Page Directory address for task 't' */
 page_table_entry * get_DIR (struct task_struct *t) 
@@ -59,7 +60,6 @@ void cpu_idle(void)
 
 void init_idle (void) // SE EJECUTA SIEMPRE EN MODO SISTEMA
 {
-
 // ESTO DEBERIA SER STRUCT O UNION? PORQUE FREEQUEUE TIENE LISTAS QUE ESTAN CONTENIDAS EN EL TASK UNION TAMBIEN
 // GET AN AVAILABLE TASK_UNION FROM FREEQUEUE
 struct list_head *first_elem = list_first(freequeue);
@@ -67,28 +67,43 @@ struct task_struct idle = list_entry(first_elem, task_struct, list);
 // BORRAR FIRST_ELEM DE LA FREEQUEUE
 
 // PID = 0
-idle.PID = 0;
+idle->PID = 0;
 
-//usar allocate_DIR
-// INIT dir_pages_baseAaddr with a new directory  to store the prcess address space using allocate_DIR
+// INIT dir_pages_baseAaddr with a new directory  to store the process address space using allocate_DIR
+idle->dir_pages_baseAddr = allocate_DIR(idle);
 
-//llamar a idle_prep();
-// call a .S function to rellocate the stack?
+// call a .S function to rellocate the stack? PASAR VALORES COMO PARAMETROS Y AÑADIRLO EN ASSEMBLER
+idle_prep(&cpu_idle(), 0);
 
-// inicializar la task_struct idle_task
-// init idle_task
-//añadirla a la READYQUEUE
+idle_task = idle; // INIT idle_task
+
+// añadirla a la READYQUEUE? NO NO?
 }
 
 void init_task1(void)
 {
-/*
+
+// ESTO DEBERIA SER STRUCT O UNION? PORQUE FREEQUEUE TIENE LISTAS QUE ESTAN CONTENIDAS EN EL TASK UNION TAMBIEN
+// GET AN AVAILABLE TASK_UNION FROM FREEQUEUE
+struct list_head *first_elem = list_first(freequeue);
+struct task_struct init = list_entry(first_elem, task_struct, list);
+// BORRAR FIRST_ELEM DE LA FREEQUEUE
+
 // PID = 1
+init->PID = 1;
+
 // INIT dir_pages_baseAaddr with a new directory  to store the prcess address space using allocate_DIR
+idle->dir_pages_baseAddr = allocate_DIR(idle);
+
 // Complete the init of address space using set_user_pages (mm.c).
-// Update Tss for int and MSR for sysenters
+set_user_pages(init);
+
+// Update Tss for int and MSR for sysenters. ALGO COMO ESTO
+tss.esp0 = ;
+writeMSR(0x175, tss.esp0, 0);
+
 // set_cr3(page_table_entry *dir) [mm.c] function
-*/
+set_cr3(init->dir_pages_base_Addr);
 }
 
 
@@ -110,3 +125,10 @@ struct task_struct* current()
   return (struct task_struct*)(ret_value&0xfffff000);
 }
 
+void task_switch(union task_union*t) {
+// modify tss.esp0
+// modify MSR(0x175,....)
+// USE set_cr3 to point to the page directory of the new task
+
+// call a .S function to rellocate the stack???
+}

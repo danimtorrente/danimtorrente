@@ -1,4 +1,4 @@
--Tengo una duda acerca de libzeos.a. Si ya estaba definida itoa en libzeos.a, como es que se define otra vez en libc y
-a mi no me dejaba, es porque libzeos es una libreria para sistema? Si es el caso supongo que con el comando nm puedo
-ver las funciones predefinidas, pero como puedo ver el usage? Supongo que si nos habeis puesto solo el .a es porque no
-hace falta ver el usage pero por si acaso pregunto.
+-task_switch no esta predefinido, esta declarado en el .h para que nosotros los implementemos en el archivo c ?
+-
+-
+-
