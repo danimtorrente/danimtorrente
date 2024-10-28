@@ -74,9 +74,10 @@ idle->dir_pages_baseAddr = allocate_DIR(idle);
 
 // call a .S function to rellocate the stack? PASAR VALORES COMO PARAMETROS Y AÑADIRLO EN ASSEMBLER
 idle_prep(&cpu_idle(), 0);
-
+// FALTA PONER idle->k_esp = (el valor de esp que no se como conservarlo)
+// QUE POR CIERTO SI PONGO LA DIRECCION DE RETORNO CPU_IDLE NUNCA EJECUTA ESTA PARTE DEL CODIGO NO?
 idle_task = idle; // INIT idle_task
-
+// HABRIA QUE HACER UN EOI AQUI O EN IDLE_PREP PARA QUE PUEDAN LLEGAR INTERRUPCIONES MIENTRAS SE EJECUTA?
 // añadirla a la READYQUEUE? NO NO?
 }
 
@@ -93,14 +94,15 @@ struct task_struct init = list_entry(first_elem, task_struct, list);
 init->PID = 1;
 
 // INIT dir_pages_baseAaddr with a new directory  to store the prcess address space using allocate_DIR
-idle->dir_pages_baseAddr = allocate_DIR(idle);
+init->dir_pages_baseAddr = allocate_DIR(idle);
 
 // Complete the init of address space using set_user_pages (mm.c).
 set_user_pages(init);
 
-// Update Tss for int and MSR for sysenters. ALGO COMO ESTO
-tss.esp0 = ;
+// Update Tss for int and MSR for sysenters. ASI????
+tss.esp0 = init->dir_pages_baseAddr;
 writeMSR(0x175, tss.esp0, 0);
+//UPDATE INIT->k_esp??????????????????????????????
 
 // set_cr3(page_table_entry *dir) [mm.c] function
 set_cr3(init->dir_pages_base_Addr);

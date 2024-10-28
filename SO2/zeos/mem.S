@@ -6,15 +6,15 @@
 
 // store in the stack cpu_idle();
 // store in the stack initial value of ebp (for example 0)
-// save position of the stack(in a new field in task_struct) where we have stored the initial value for the ebp register
+// ???????????????? Save position of the stack(in a new field in task_struct) where we have stored the initial value for the ebp register
 // CREO QUE HAY QUE PONER UN EOI O ALGO PARA HACER ENABLE INTERRUPTS
 ENTRY(idle_prep) // idle_prep(&cpu_idle(), 0);
 	push %ebp
-	movl %esp, %ebp
+	movl $0, (%esp)
+	movl 8(%esp), %edx // ns si puedo usar cualquier registro o igual tengo que al principio guardar y luego restaurar
+	movl %edx, 4(%esp)
+	ret
 
-	movl %ebp, %esp
-	popl %ebp
-	ret // eso hace falta?
 
 /* // DIRIA QUE NO NECESARIO POR AHORA ALMENOS
 ENTRY(init_prep)
