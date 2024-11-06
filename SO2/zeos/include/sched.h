@@ -14,9 +14,12 @@ and it contains the physical page number.
 #define KERNEL_STACK_SIZE	1024
 
 enum state_t { ST_RUN, ST_READY, ST_BLOCKED };
+///////////////////////////////////////////////////////////////////////////////////////////////////////////
+// IGUAL HACE FALTA AÑADIR READYQUEUE, FREEQUEUE...
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////
 struct task_struct {
-  void * k_esp;
+//  void * k_esp;
   int PID;			/* Process ID. This MUST be the first field of the struct. */
   page_table_entry * dir_pages_baseAddr;
   struct list_head list;

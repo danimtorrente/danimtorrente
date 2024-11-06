@@ -16,14 +16,15 @@ struct task_struct *list_head_to_task_struct(struct list_head *l)
 }
 #endif
 
-extern struct list_head blocked; // POR QUE NO ESTA DEFINIDO EN EL .H PERO SI TIENE EL EXTERN?
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+extern struct list_head blocked; // NO ENTIENDO QUE SENTIDO TIENE HACER EXTERN EN EL .C SIN DECLARAR 
+				 // LA VARIABLE EN EL ARCHIVO .H
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
 extern struct list_head freequeue;
 extern struct list_head readyqueue;
-void idle_prep(); // en mem.S
+void idle_prep(); // en mem.S ----- ¡¡ LA CABECERA TIENE PARAMETROS !!
 void init_prep(); // en mem.S
 struct task_struct * idle_task;
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
 /* get_DIR - Returns the Page Directory address for task 't' */
 page_table_entry * get_DIR (struct task_struct *t) 
 {
@@ -121,7 +122,7 @@ struct task_struct* current()
   int ret_value;
   
   __asm__ __volatile__(
-  	"movl %%esp, %0"
+  	"movl %%esp, %0" // el %0 es un marcador que se sustituira por ret_value
 	: "=g" (ret_value)
   );
   return (struct task_struct*)(ret_value&0xfffff000);
