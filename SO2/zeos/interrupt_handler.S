@@ -19,7 +19,7 @@ ENTRY(keyboard_handler)
 	RESTORE_ALL
 	iret
 
-ENTRY(system_call)
+ENTRY(system_call) // handler llamadas lentas a sistema
 	SAVE_ALL
 	cmpl $0, %EAX
 	jl err

@@ -3,42 +3,34 @@
 #ifndef __MEM_H__
 #define __MEM_H__
 
+// 1) saves the registers ESI, EDI and EBX
+// 2) calls the inner_task_switch routine
+// 3) restores the previously saved registers
 
-// store in the stack cpu_idle();
-// store in the stack initial value of ebp (for example 0)
-// ???????????????? Save position of the stack(in a new field in task_struct) where we have stored the initial value for the ebp register
-// CREO QUE HAY QUE PONER UN EOI O ALGO PARA HACER ENABLE INTERRUPTS
-ENTRY(idle_prep) // idle_prep(&cpu_idle(), 0);
-	push %ebp
-	movl $0, (%esp)
-	movl 8(%esp), %edx // ns si puedo usar cualquier registro o igual tengo que al principio guardar y luego restaurar
-	movl %edx, 4(%esp)
+
+// Paso parametros por la pila, no me queda claro cuando se usan registros para los parametros y cuando pila
+ENTRY(task_switch) // void task_switch(union task_union*t);
+	pushl %ebp
+	movl %esp, %ebp
+	pushl %esi
+	pushl %edi
+	pushl %ebx
+	pushl 8(%ebp) // push parametro
+	call inner_task_switch
+	addl $4, %esp // elimino parametro de la pila
+	popl %ebx
+	popl %edi
+	popl %esi
+	popl %ebp
+	ret // exit
+
+ENTRY(get_ebp) // REVISAR 
+	movl %ebp, %eax
 	ret
 
-
-/* // DIRIA QUE NO NECESARIO POR AHORA ALMENOS
-ENTRY(init_prep)
-        push %ebp
-        movl %esp, %ebp
-
-        movl %ebp, %esp
-        popl %ebp
-        ret // eso hace falta?
-*/
-
-
-// store the value of ebp in the PCB
-// store in esp the value stored in the new PCB
-// restore the ebp register from the stack
-// return using ret to this funtion (not always return to this functino but most of the time)
-ENTRY(task_switch_ass)
-        push %ebp
-        movl %esp, %ebp
-
-        movl %ebp, %esp
-        popl %ebp
-        ret // eso hace falta?
-
-
+ENTRY(set_esp) // REVISAR
+	movl 4(%esp), %esp
+	popl %ebp
+	ret
 
 #endif

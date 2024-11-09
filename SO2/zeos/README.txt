@@ -1,6 +1,6 @@
-Bon dia,
-Apunts de l'entrega. El keyboard y rellotge funcionen. El gettime també tot i que no esigui al codi usuari. El write amb trucada int funciona perfectament y amb sysenter també, l'unic
-que amb sysenter al acabar d'escriure salta una excepció. Es estrany perquè despres provo a executar amb el gdb pas a pas i no em salta l'excepcio. Despres, la exepció de page fault 
-funciona i paso com a parametre l'adreça que es l'eip, pero no puc usar les funcions de libc a sistema no se per que. He provat de incloure els arxius .o necessaris al Makefile 
-pero em donava alguns errors. Donat que m'estic quedant sense temps ho entrego tal com esta.
-Gracies
+Bona tarda,
+Avui no he pogut anar al lab i tenia molts dubtes aixi que he avançat com he pogut, potser hi ha alguna cosa sense sentit (espero que no), 
+la majoria crec que es coherent pero no m'ha donat temps a testejar tot el que he implementat (he acabat d'implementar 5 min abans de l'entrega).
+
+Respecte al codi, les trucades a sistema block i unblock he fet les seves entrades a la sys_call_table random (5 i 6 crec). Els wrappers he fet amb 
+int en comptes de sysenter, ho canviaré per practicar per l'examen no sé si preferieu el sysenter (per fer-ho per un altre entrega).

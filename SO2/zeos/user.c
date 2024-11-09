@@ -11,6 +11,10 @@ int add(int par1, int par2) {
 
 int addAsm(int par1, int par2);
 
+int getpid();
+int gettime();
+int write(int df, char * buffer, int size);
+
 int __attribute__ ((__section__(".text.main")))
   main(void)
 {
@@ -25,11 +29,11 @@ int __attribute__ ((__section__(".text.main")))
 	perror();
   }
 
-  int aux = add(0x42, 0x666);
+//  int aux = add(0x42, 0x666);
+  int aux = getpid();
   itoa(aux, buff);
   int len = strlen(buff);
-  write(1, buff, len);
-
+//  write(1, &buff[0], len);
 
 //  int aux2 = addAsm(0x42, 0x666);
 

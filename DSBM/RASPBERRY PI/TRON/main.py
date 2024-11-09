@@ -115,6 +115,25 @@ def init():
                     running = False
                     pygame.quit()
 
+def finish_screen():
+    global running
+    text_surface = font.render("Pulse n para salir", True, (255, 255, 255))  # Color blanco
+    text_rect = text_surface.get_rect(center=(1290, 540))  # Centrar en pantalla
+    text_rect3 = text_surface.get_rect(center=(1280, 440))  # Centrar en pantalla
+    screen.fill((0, 0, 0))  # Fondo negro
+    screen.blit(text_surface, text_rect)  # Mostrar el texto en la pantalla
+    screen.blit(text_surface3, text_rect3)
+    pygame.display.flip()  # Actualizar la pantalla
+    go_on = False
+    while not go_on:
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_n]: go_on = True
+        for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    running = False
+                    pygame.quit()
+
+
 finish = False
 running = True
 puntos_j1 = 10
@@ -122,14 +141,18 @@ puntos_j2 = 10
 clock = pygame.time.Clock()
 text_surface1 = font.render(f"Puntuación Jugador1: {puntos_j1}", True, (255, 255, 255))  # Color blanco
 text_surface2 = font.render(f"Puntuación Jugador2: {puntos_j2}", True, (255, 255, 255))  # Color blanco
+text_surface3 = font.render("Player 1 wins!!!", True, (255, 255, 255))  # Color blanco
 text_rect1 = text_surface1.get_rect(center=(150, 20))  # Ajusta la posición en la pantalla para la primera línea
 text_rect2 = text_surface2.get_rect(center=(150, 50))  # Ajusta la posición en la pantalla para la segunda línea
+
 init()
 
 # Bucle principal del juego
 while finish == False:
     reset()
     if puntos_j1 == 0 or puntos_j2 == 0:
+        if puntos_j1 == 0: text_surface3 = font.render("Player 2 wins!!!", True, (255, 255, 255))  # Color blanco
+        finish_screen()
         running = False
         pygame.quit()
         break

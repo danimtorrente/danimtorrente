@@ -9,21 +9,22 @@
 union task_union task[NR_TASKS]
   __attribute__((__section__(".data.task")));
 
-#if 0
+// #if 0 // Supongo que estoy hay que descomentarlo? o usar list_entry directamente?
 struct task_struct *list_head_to_task_struct(struct list_head *l)
 {
   return list_entry( l, struct task_struct, list);
 }
-#endif
+// #endif
 
-extern struct list_head blocked; // NO ENTIENDO QUE SENTIDO TIENE HACER EXTERN EN EL .C SIN DECLARAR 
-				 // LA VARIABLE EN EL ARCHIVO .H
+struct list_head blocked;
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
-extern struct list_head freequeue;
-extern struct list_head readyqueue;
+struct list_head freequeue;
+struct list_head readyqueue;
 void idle_prep(); // en mem.S ----- ¡¡ LA CABECERA TIENE PARAMETROS !!
 void init_prep(); // en mem.S
 struct task_struct * idle_task;
+int pids;
+extern int quantum_left;
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 /* get_DIR - Returns the Page Directory address for task 't' */
 page_table_entry * get_DIR (struct task_struct *t) 
@@ -61,66 +62,77 @@ void cpu_idle(void)
 
 void init_idle (void) // SE EJECUTA SIEMPRE EN MODO SISTEMA
 {
-// ESTO DEBERIA SER STRUCT O UNION? PORQUE FREEQUEUE TIENE LISTAS QUE ESTAN CONTENIDAS EN EL TASK UNION TAMBIEN
 // GET AN AVAILABLE TASK_UNION FROM FREEQUEUE
-struct list_head *first_elem = list_first(freequeue);
-struct task_struct idle = list_entry(first_elem, task_struct, list);
-// BORRAR FIRST_ELEM DE LA FREEQUEUE
+struct list_head *first_elem = list_first(&freequeue);
+list_del(first_elem);
+union task_union *idle = (union task_union*)list_head_to_task_struct(first_elem);
 
 // PID = 0
-idle->PID = 0;
+idle->task.PID = 0;
 
 // INIT dir_pages_baseAaddr with a new directory  to store the process address space using allocate_DIR
-idle->dir_pages_baseAddr = allocate_DIR(idle);
+allocate_DIR(&idle->task);
 
-// call a .S function to rellocate the stack? PASAR VALORES COMO PARAMETROS Y AÑADIRLO EN ASSEMBLER
-idle_prep(&cpu_idle(), 0);
-// FALTA PONER idle->k_esp = (el valor de esp que no se como conservarlo)
-// QUE POR CIERTO SI PONGO LA DIRECCION DE RETORNO CPU_IDLE NUNCA EJECUTA ESTA PARTE DEL CODIGO NO?
-idle_task = idle; // INIT idle_task
-// HABRIA QUE HACER UN EOI AQUI O EN IDLE_PREP PARA QUE PUEDAN LLEGAR INTERRUPCIONES MIENTRAS SE EJECUTA?
-// añadirla a la READYQUEUE? NO NO?
+idle->stack[KERNEL_STACK_SIZE - 1] = (unsigned long)cpu_idle; // el nombre de una funcion ya es su posicion de memoria
+idle->stack[KERNEL_STACK_SIZE - 2] = 0;
+idle->task.kernel_esp = &(idle->stack[KERNEL_STACK_SIZE - 2]);
+///////////////////////////////////////////////////////////////////////////////////////////////
+idle->task.parent = NULL;
+INIT_LIST_HEAD(&idle->task.children);
+idle_task = (struct task_struct*)idle;
 }
 
 void init_task1(void)
 {
-
-// ESTO DEBERIA SER STRUCT O UNION? PORQUE FREEQUEUE TIENE LISTAS QUE ESTAN CONTENIDAS EN EL TASK UNION TAMBIEN
 // GET AN AVAILABLE TASK_UNION FROM FREEQUEUE
-struct list_head *first_elem = list_first(freequeue);
-struct task_struct init = list_entry(first_elem, task_struct, list);
-// BORRAR FIRST_ELEM DE LA FREEQUEUE
+struct list_head *first_elem = list_first(&freequeue);
+list_del(first_elem);
+union task_union *init = (union task_union*)list_head_to_task_struct(first_elem);
 
-// PID = 1
-init->PID = 1;
+// PID = 0
+init->task.PID = 1;
 
-// INIT dir_pages_baseAaddr with a new directory  to store the prcess address space using allocate_DIR
-init->dir_pages_baseAddr = allocate_DIR(idle);
+// INIT dir_pages_baseAaddr with a new directory  to store the process address space using allocate_DIR
+allocate_DIR(&init->task);
 
 // Complete the init of address space using set_user_pages (mm.c).
-set_user_pages(init);
+set_user_pages(&init->task);
 
-// Update Tss for int and MSR for sysenters. ASI????
-tss.esp0 = init->dir_pages_baseAddr;
+// Quantum stuff
+init->task.quantum = DEFAULT_QUANTUM;
+quantum_left = init->task.quantum;
+
+// Update Tss for int and MSR for sysenters.
+init->task.kernel_esp = &(init->stack[KERNEL_STACK_SIZE]); // NECESARIO?
+// ACCEDE A LA POSICION DE MEMORIA DESPUES DEL ULTIMO ELEMENTO, AUNQUE NO EXISTA SE PUEDE HACER SOLO PARA SACAR
+// LA POSICION DE MEMORIA, NO PARA ACCEDER AL ELEMENTO PORQUE ESE ELEMENTO NO EXISTE
+tss.esp0 = (DWord)init->task.kernel_esp;
 writeMSR(0x175, tss.esp0, 0);
-//UPDATE INIT->k_esp??????????????????????????????
 
 // set_cr3(page_table_entry *dir) [mm.c] function
-set_cr3(init->dir_pages_base_Addr);
+set_cr3(init->task.dir_pages_baseAddr);
+//////////////////////////////////////////////////////////////////////////////////////////////////
+init->task.parent = idle_task;  // El padre de init es idle
+INIT_LIST_HEAD(&init->task.children);
+// Agregar init a la lista de hijos de idle
+list_add_tail(&init->task.sibling, &idle_task->children);
+
 }
 
 
 void init_sched()
 {
+	pids = 2;
 	INIT_LIST_HEAD(&freequeue); // init free queue
-	for (int i = 0; i < NR_TASKS; ++i) list_add(&(task[i].list), &freequeue); // add tasks to free queue
+	for (int i = 0; i < NR_TASKS; ++i) list_add(&(task[i].task.list), &freequeue); // add tasks to free queue
 	INIT_LIST_HEAD(&readyqueue); // init ready queue
+	INIT_LIST_HEAD(&blocked); // init blocked queue
 }
 
 struct task_struct* current()
 {
   int ret_value;
-  
+
   __asm__ __volatile__(
   	"movl %%esp, %0" // el %0 es un marcador que se sustituira por ret_value
 	: "=g" (ret_value)
@@ -128,10 +140,62 @@ struct task_struct* current()
   return (struct task_struct*)(ret_value&0xfffff000);
 }
 
-void task_switch(union task_union*t) {
-// modify tss.esp0
-// modify MSR(0x175,....)
-// USE set_cr3 to point to the page directory of the new task
+void inner_task_switch(union task_union*t) {
 
-// call a .S function to rellocate the stack???
+// modify tss.esp0
+  tss.esp0 = KERNEL_ESP(t);
+
+// modify MSR(0x175,....)
+  writeMSR(0x175, tss.esp0, 0); // ultimo parametro necesario?
+
+// USE set_cr3 to point to the page directory of the new task
+  set_cr3(get_DIR((struct task_struct*)t));
+
+// Store de current value of the ebp register in the pcb
+  current()->kernel_esp = (unsigned long *)get_ebp(); //REVISAR
+
+// Set esp register to point to the stored valure in the new pcb
+  set_esp(t->task.kernel_esp); //REVISAR
+}
+
+int get_quantum(struct task_struct *t) 
+{
+    return t->quantum;
+}
+
+void set_quantum(struct task_struct *t, int new_quantum) 
+{
+    t->quantum = new_quantum;
+}
+
+void update_sched_data_rr (void)
+{
+ --quantum_left;
+}
+
+int needs_sched_rr (void)
+{
+  if (quantum_left == 0 && !list_empty(&readyqueue)) return 1;
+
+  if (quantum_left == 0) quantum_left = get_quantum(current());
+
+  return 0;
+}
+
+void update_process_state_rr (struct task_struct *t, struct list_head *dst_queue)
+{
+  if (t != current() && t != idle_task) list_del(&t->list);
+  if (dst_queue != NULL) list_add_tail(&t->list, dst_queue); // REVISAR
+}
+
+void sched_next_rr (void)
+{
+  struct task_struct *next_task;
+
+  if (list_empty(&readyqueue)) next_task = idle_task;
+  else next_task = list_head_to_task_struct(list_first(&readyqueue));
+
+  update_process_state_rr(next_task, NULL);
+
+  task_switch((union task_union*)next_task);
 }

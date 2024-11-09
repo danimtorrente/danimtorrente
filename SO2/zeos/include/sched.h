@@ -12,17 +12,21 @@ and it contains the physical page number.
 
 #define NR_TASKS      10
 #define KERNEL_STACK_SIZE	1024
+#define DEFAULT_QUANTUM 10
 
 enum state_t { ST_RUN, ST_READY, ST_BLOCKED };
-///////////////////////////////////////////////////////////////////////////////////////////////////////////
-// IGUAL HACE FALTA AÑADIR READYQUEUE, FREEQUEUE...
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////
 struct task_struct {
-//  void * k_esp;
   int PID;			/* Process ID. This MUST be the first field of the struct. */
   page_table_entry * dir_pages_baseAddr;
   struct list_head list;
+  unsigned long * kernel_esp;
+  int quantum;
+  enum state_t state;
+  int pending_unblocks;              //
+  struct task_struct *parent;        //
+  struct list_head children;         //
+  struct list_head sibling;          //
 };
 
 union task_union {
@@ -31,7 +35,13 @@ union task_union {
 };
 
 extern union task_union task[NR_TASKS]; /* Vector de tasques */
-
+extern struct list_head freequeue;
+extern struct list_head readyqueue;
+extern struct list_head blocked;
+extern struct task_struct *idle_task;
+extern int pids;
+extern int quantum_left;
+// extern struct task_struct *init_task; // IGUAL HACE FALTA ??
 
 #define KERNEL_ESP(t)       	(DWord) &(t)->stack[KERNEL_STACK_SIZE]
 

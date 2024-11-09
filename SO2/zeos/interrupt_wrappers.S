@@ -41,6 +41,85 @@ final1:	movl %ebp, %esp
 	popl %ebp
 	ret //return
 
+ENTRY(getpid)
+	pushl %ebp
+	movl %esp, %ebp
+//////////////////////////////////////////////////
+	movl $20, %eax
+	int $0x80
+        cmpl $0, %eax // process result
+        jge final2
+        movl %eax, errno // errno es una etiqueta de memoria
+        movl $-1, %eax
+/////////////////////////////////////////
+final2: movl %ebp, %esp
+        popl %ebp
+        ret //return
+
+ENTRY(fork)
+	pushl %ebp
+	movl %esp, %ebp
+////////////////////////////////////////////////////
+	movl $2, %eax
+	int $0x80
+        cmpl $0, %eax
+	jge final3
+        movl %eax, errno // errno es una etiqueta de memoria
+        movl $-1, %eax
+/////////////////////////////////////////
+final3: movl %ebp, %esp
+        popl %ebp
+        ret //return
+
+ENTRY(exit)
+        pushl %ebp
+        movl %esp, %ebp
+//////////////////////////////////////////////////
+        movl $1, %eax
+        int $0x80
+//        cmpl $0, %eax // process result
+//        jge final4
+//        movl %eax, errno // errno es una etiqueta de memoria
+//        movl $-1, %eax
+/////////////////////////////////////////
+final4: movl %ebp, %esp
+        popl %ebp
+        ret //return
+
+ENTRY(block) // void block(void) // entrada 5
+        pushl %ebp
+        movl %esp, %ebp
+//////////////////////////////////////////////////
+        movl $1, %eax
+        int $0x80
+//        cmpl $0, %eax // process result
+//        jge final5
+//        movl %eax, errno // errno es una etiqueta de memoria
+//        movl $-1, %eax
+/////////////////////////////////////////
+final5: movl %ebp, %esp
+        popl %ebp
+        ret //return
+
+
+ENTRY(unblock) // void unblock(int pid) // entrada 6
+        pushl %ebp
+        movl %esp, %ebp
+	movl 8(%ebp), %edx // pid
+//////////////////////////////////////////////////
+        movl $1, %eax
+        int $0x80
+//        cmpl $0, %eax // process result
+//        jge final6
+//        movl %eax, errno // errno es una etiqueta de memoria
+//        movl $-1, %eax
+/////////////////////////////////////////
+final6: movl %ebp, %esp
+        popl %ebp
+        ret //return
+
+
+
 /*
 ENTRY(write) // WRITE WITH FAST CALL WRAPPER
 	pushl %ebp
