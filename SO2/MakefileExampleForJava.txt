@@ -1,0 +1,24 @@
+# Compiler for java
+JC = javac
+
+# Flags; -g compiles with debugging info
+JFLAGS = -g
+
+# Include directories (INCLUDES), library paths (LFLAGS) and libraries (LIBS)
+
+# Define Macros
+
+# Metatargets
+.SUFFIXES: .java .class
+
+# Default target for building the project (because its the first)
+# Here dependencies should be object files
+default: classes
+
+classes:
+
+# Here targets should be object files and dependencies code files
+
+# Reset target
+clean:
+	$(RM) *.class

@@ -1,0 +1,26 @@
+EXERCICI 1
+	A) 0x114000 --> En el archivo .lds
+	B) 0x29000 --> Con gdb, breakpoint en set_cr3 y el que hay dentro de init_mm es el que tiene la direccion de memoria.
+	C) 
+	Compilación:
+	// Se genera el .o y no el ejecutable direcamente para luego no tener que compilarlo todo otra vez con cada modificacion. El
+	// -c es para que solamente compile, el -I./include es para incluir los archivos del directorio, y la palabra despues de -o 
+	// define el nombre del archivo.
+		gcc -c -I./include -o exam.o exam.S
+		gcc -c -I./include -o otra.o otra.c
+		gcc -c -I./include -o otros_objetos.o otros_objetos.c
+	Enlace:
+	// Como previamente no se generó el archivo ejecutable lo generamos ahora linkando todos los archivos objeto con el 
+	// enlazador de GNU: ld. La opcion -T es para definir la disposicion del ejecutable en memoria. El -o especifica el 
+	// nombre del ejecutable generado (el que esta inmediatamente despues)
+		ld -T link.lds -o zeos.elf exam.o exam.o otra.o
+
+
+EXERCICI 2
+	A) 20(%esp)
+	B) Hay que borrar de la pila el parametro que hemos añadido previamente en la posicion XXX(%esp)
+	C) current()->kernel_esp = (unsigned long *)get_ebp();
+	D) Para que no haya incoerencias, debera tener guardados en la pila los mismos registros y el parametro
+
+EXERCICI 3
+	

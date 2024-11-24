@@ -1,8 +1,8 @@
 import pygame
 
 # Configuración de pantalla
-WIDTH, HEIGHT = 2500, 1000
-GRID_SIZE = 10
+WIDTH, HEIGHT = 700, 700
+GRID_SIZE = 2
 
 # Colores
 BLACK = (0, 0, 0)
@@ -12,7 +12,7 @@ PLAYER2_COLOR = (255, 127, 0)
 
 
 # Configuración de jugadores
-PLAYER_SPEED = GRID_SIZE*0.5
+PLAYER_SPEED = GRID_SIZE
 
 pygame.init()
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -102,7 +102,7 @@ def init():
     pygame.mixer.music.play(-1)
     pygame.mixer.music.set_volume(1)
     text_surface = font.render("¡Bienvenido a tron! Pulse n para continuar", True, (255, 255, 255))  # Color blanco
-    text_rect = text_surface.get_rect(center=(1280, 540))  # Centrar en pantalla
+    text_rect = text_surface.get_rect(center=(WIDTH/2, HEIGHT/2))  # Centrar en pantalla
     screen.fill((0, 0, 0))  # Fondo negro
     screen.blit(text_surface, text_rect)  # Mostrar el texto en la pantalla
     pygame.display.flip()  # Actualizar la pantalla
@@ -118,8 +118,8 @@ def init():
 def finish_screen():
     global running
     text_surface = font.render("Pulse n para salir", True, (255, 255, 255))  # Color blanco
-    text_rect = text_surface.get_rect(center=(1290, 540))  # Centrar en pantalla
-    text_rect3 = text_surface.get_rect(center=(1280, 440))  # Centrar en pantalla
+    text_rect = text_surface.get_rect(center=(WIDTH/2, HEIGHT/2))  # Centrar en pantalla
+    text_rect3 = text_surface.get_rect(center=(WIDTH/2, HEIGHT/2))  # Centrar en pantalla
     screen.fill((0, 0, 0))  # Fondo negro
     screen.blit(text_surface, text_rect)  # Mostrar el texto en la pantalla
     screen.blit(text_surface3, text_rect3)

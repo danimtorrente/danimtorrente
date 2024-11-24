@@ -37,7 +37,7 @@ int sys_getpid()
 	return current()->PID;
 }
 
-int ret_from_fork() { // MIRAR SI ESTO SOLO TA BIEN
+int ret_from_fork() {
 	return 0;
 }
 

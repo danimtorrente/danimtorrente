@@ -1,0 +1,16 @@
+EXERCICI 1
+        A) mirar data_task y sumar 4 paginas (4*4096)
+        B) en mm.c, en init_mem o algo asi, cuando activamos el bit PE (modo protegido) y luego el bit PG (paginacion)
+        C) 
+
+EXERCICI 2
+
+
+EXERCICI 3
+
+
+
+
+
+
+
