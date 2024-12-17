@@ -73,3 +73,10 @@ ENTRY(page_handler) // PASAR PARAMETRO ERROR Y DIRECCION EIP QUE SE ACCEDE A TRA
 	call page_routine
 	iret
 
+ENTRY(quickfork_handler)
+        SAVE_ALL
+        EOI
+        call quickfork_routine
+        RESTORE_ALL
+        iret
+

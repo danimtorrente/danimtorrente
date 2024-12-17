@@ -90,7 +90,7 @@ ENTRY(block) // void block(void) // entrada 5
         pushl %ebp
         movl %esp, %ebp
 //////////////////////////////////////////////////
-        movl $1, %eax
+        movl $1, %eax // numero llamada a sistema (CAMBIAR)
         int $0x80
 //        cmpl $0, %eax // process result
 //        jge final5
@@ -107,7 +107,7 @@ ENTRY(unblock) // void unblock(int pid) // entrada 6
         movl %esp, %ebp
 	movl 8(%ebp), %edx // pid
 //////////////////////////////////////////////////
-        movl $1, %eax
+        movl $1, %eax // numero llamada a sistema (CAMBIAR)
         int $0x80
 //        cmpl $0, %eax // process result
 //        jge final6
@@ -115,6 +115,22 @@ ENTRY(unblock) // void unblock(int pid) // entrada 6
 //        movl $-1, %eax
 /////////////////////////////////////////
 final6: movl %ebp, %esp
+        popl %ebp
+        ret //return
+
+ENTRY(quickfork)
+	pushl %ebp
+        movl %esp, %ebp
+//        movl 8(%ebp), %edx // pid
+//////////////////////////////////////////////////
+//        movl $1, %eax
+        int $200
+        cmpl $0, %eax // process result
+        jge final7
+        movl %eax, errno // errno es una etiqueta de memoria
+        movl $-1, %eax
+/////////////////////////////////////////
+final7: movl %ebp, %esp
         popl %ebp
         ret //return
 

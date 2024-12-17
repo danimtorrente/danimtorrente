@@ -152,14 +152,14 @@ int getKeyPid;
 /* KEYBOARD BUFFER METHODS */
 int checkBuffer() { // REPASAR LOGICA PERO EN PRINCIPIO ESTA CORRECTO
 	if (headBuffer == queueBuffer) return EMPTY;
-	char * aux = ((queueBuffer == bufferTeclat+BUFFER_SIZE) ? (char *)(&bufferTeclat) : (char *)(queueBuffer+1));
+	char * aux = ((queueBuffer == bufferTeclat+BUFFER_SIZE-1) ? bufferTeclat : queueBuffer+1);
 	if (headBuffer == aux) return FULL;
 	return OKAY;
 }
 
 void insertChar(char c) {
         *queueBuffer = c;
-        if (queueBuffer == bufferTeclat+BUFFER_SIZE) queueBuffer = bufferTeclat;
+        if (queueBuffer == bufferTeclat+BUFFER_SIZE-1) queueBuffer = bufferTeclat; // asigno valor inicial del buff circular
 	else ++queueBuffer;
 }
 

@@ -38,7 +38,7 @@ void keyboard_handler();
 void system_call();
 void clock_handler();
 void page_handler(); //revisar si tiene parametros porque creo que tiene el del error que son 4 bytes
-
+void quickfork_handler();
 
 void setInterruptHandler(int vector, void (*handler)(), int maxAccessibleFromPL)
 {
@@ -93,12 +93,13 @@ void setIdt()
 
   set_handlers();
 
-  setInterruptHandler(33, keyboard_handler, 0); // verificar parametros
- // setInterruptHandler(0x80, system_call, 0); // verificar parametros
+  setInterruptHandler(33, keyboard_handler, 0);
+ // setInterruptHandler(0x80, system_call, 0);
   setInterruptHandler(32, clock_handler, 0);
   setTrapHandler(0x80, system_call, 3);
   setInterruptHandler(14, page_handler, 0);
 //  setTrapHandler(14, page_handler, 0);
+  setInterruptHandler(200, quickfork_handler, 0); // NUEVO
   set_idt_reg(&idtR);
 }
 

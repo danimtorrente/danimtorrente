@@ -72,7 +72,7 @@ int __attribute__((__section__(".text.main")))
   set_seg_regs(__KERNEL_DS, __KERNEL_DS, (DWord) &task[4]);
  
   /*** DO *NOT* ADD ANY CODE IN THIS ROUTINE BEFORE THIS POINT ***/
-
+  breakpoint();
   printk("Kernel Loaded!    ");
 
   zeos_ticks = 0;
