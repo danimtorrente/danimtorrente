@@ -1,0 +1,94 @@
+
+Estructura básica de un Makefile:
+
+	-Objetivos (targets): Son los nombres de los archivos que quieres generar, como zeos.bin, user, system, etc.
+    
+	-Dependencias: Son los archivos necesarios para generar el objetivo (por ejemplo, los archivos .o que se generan a partir 
+		del código fuente).
+	
+	-Reglas: Son los comandos que se ejecutan para generar el objetivo (como ejecutar el compilador gcc, el ensamblador as, 
+		o el enlazador ld).
+
+EJEMPLO BASICO DE MAKEFILE:
+
+blah: blah.o
+	cc blah.o -o blah #runs third
+
+blah.o: blah.c 
+	cc -c blah.c -o blah.o #runs second
+
+blah.c:
+	echo "int main() {return 0; } > blah.c #runs first
+
+-----------------------------------------------------------------------------------------------------------------
+
+Si modifico algo de las dependencias y hago make, si se hace, si modifico el .c pero no lo tengo como dependencia, no pasa nada. 
+El archivo .c no se le tiene que hacer nada podrias no ponerlo como dependencia, el problema es que una vez lo compiles ya no lo
+podras compilar mas porque no mirara si el archivo es up to date. 
+
+-----------------------------------------------------------------------------------------------------------------------------------
+
+Dos tipos de variables predefinidas:
+-Automáticas: Se definen y actualizan automaticamente durante la ejecucion de reglas de un Makefile
+	Cambian de valor dependiendo de la regla que se este ejecutando:
+
+$@: Nombre del archivo objetivo (target) de la regla.
+$<: Primer archivo de la lista de dependencias (la regla depende de este archivo).
+$^: Lista de todas las dependencias de la regla.
+$?: Lista de dependencias más recientes que el archivo objetivo.
+$*: Nombre del archivo sin extensión (útil para reglas de patrones).
+$%: Nombre del miembro de un archivo de biblioteca.
+
+	-Implicitas: Se usan en las reglas implícitas de Make (patrones generales) y tienen valores predeterminados en 
+	GNU (Operating systems UNIX like) make.
+
+CC: Compilador C (por defecto cc).
+CXX: Compilador C++ (por defecto g++).
+AR: Creador de bibliotecas estáticas (por defecto ar).
+AS: Ensamblador (por defecto as).
+LD: Enlazador (por defecto ld).
+CFLAGS: Opciones para el compilador C.
+CXXFLAGS: Opciones para el compilador C++.
+LDFLAGS: Opciones para el enlazador.
+CPPFLAGS: Opciones para el preprocesador C/C++.
+
+Directivas especiales (Metatargets): son variables que empiezan con un . y siguen en mayus. Son directivas que sirven para controlar
+el comportamiento de Make.
+
+.PHONY: Declara que un target no está asociado con un archivo real en el sistema de archivos. Siempre se ejecuta.
+
+.SUFFIXES:Controla las reglas implícitas basadas en extensiones de archivo (como .c.o). Se puede usar para definir 
+	o limpiar las extensiones que make reconocerá.
+
+.DEFAULT_GOAL:Define el target predeterminado cuando make se ejecuta sin argumentos.
+
+.PRECIOUS:Previene que make elimine ciertos archivos si ocurre un error durante su construcción.
+
+.INTERMEDIATE:Declara archivos intermedios que pueden eliminarse automáticamente después de completar el target final.
+
+.SECONDARY:Similar a .INTERMEDIATE, pero no elimina automáticamente los archivos intermedios.
+
+.DELETE_ON_ERROR:Indica que los archivos objetivos que se generen parcialmente se eliminarán si ocurre un error durante la ejecución.
+
+.IGNORE:Indica a make que ignore errores en los comandos de ciertos targets.
+
+.SILENT:Evita que make imprima los comandos antes de ejecutarlos, actuando como si hubieras usado el prefijo @ en los comandos.
+
+.EXPORT_ALL_VARIABLES:Exporta todas las variables definidas en el Makefile como variables de entorno para los comandos ejecutados en las reglas.
+
+.NOTPARALLEL:Desactiva la ejecución paralela para el Makefile actual, incluso si make se invoca con -j.
+
+.ONESHELL:Fuerza a que todas las líneas de comando en una regla se ejecuten en una única instancia de shell, en lugar de lanzar un nuevo shell para cada línea.
+
+.POSIX:Habilita el modo de cumplimiento con POSIX, cambiando el comportamiento de make para ajustarse al estándar POSIX.
+
+.DEFAULT:Especifica una regla que se ejecutará si no se encuentra ninguna otra regla para un target.
+
+.RECIPEPREFIX:Permite cambiar el carácter predeterminado (TAB) que precede a las líneas de comando en las reglas.
+
+.VARIABLES:Imprime una lista de todas las variables definidas en el Makefile y las reglas implícitas.
+
+.INCLUDE_DIRS:Lista de directorios que se buscarán para los archivos incluidos con include.
+
+---------------------------------------------------------------------------------------
+

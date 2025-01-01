@@ -1,0 +1,26 @@
+- Comandos bash:
+	touch --> cambia el timestamp de un archivo o crea un archivo vacio
+	apropos nombre_comando --> busca todas las entradas coincidentes en el manual
+
+- En bash:
+	$# --> Variable especial que indica el numero de argumentos que se le han pasado al programa
+	$1 o $2 .... --> Variables especiales que indican el argumento que se le ha pasado. Es decir que $1 apunta al primer argumento, $2 al segundo, y asi....
+	
+- Sobre el man:
+	Estructura del manual:
+		Sección 1: Comandos ejecutables del usuario.
+		Sección 2: Llamadas al sistema del kernel.
+		Sección 3: Bibliotecas C (funciones estándar de programación).
+		Sección 4: Archivos especiales y drivers de dispositivos.
+		Sección 5: Formatos de archivo y convenciones.
+		Sección 6: Juegos y entretenimiento.
+		Sección 7: Misceláneos y macros.
+		Sección 8: Comandos de administración del sistema.
+	Estructura de una pagina del man:
+		NAME
+		SYNOPSIS
+		DESCRIPTION
+		OPTIONS
+		EXAMPLES
+		
+	
