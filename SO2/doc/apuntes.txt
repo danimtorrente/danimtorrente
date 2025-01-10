@@ -1,13 +1,67 @@
-ARQUITECTURAS MODERNAS
--Controlador i2c, Inter-integrated Circuit, se usa para touchpad, pantallas tactiles, teclados, sensores de huellas dactilares...
--Los laptops usan para el keyboard normalmente el controlador i8042
-------------------------------------------------------------------------------------------------------------------------------------
+<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<USO GENERAL DEL SO>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+Llamadas a sistema:
+	-Gestion de Procesos:
+		-getpid
+		-fork
+		-exit
+		-exec
+	-Gestion de Memoria:
+		-malloc
+		-free
+		-brk/sbrk
+	-I/O & filesystem
+		-open
+		-read
+		-write
+		-close
+		-lseek
+		-mknod
+	-Soporte para multithreads/multiprocess
+		-pthreads_*
+		-signal
+		-kill
+		-pipe
+		-socket
+		-sem_*
+		-clone
+
+<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<ANOTACIONES DEL HARDWARE>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+- Controlador i2c, Inter-integrated Circuit, se usa para touchpad, pantallas tactiles, teclados...
+- Los laptops usan para el keyboard normalmente el controlador i8042
+- PCI--> Es un bus que se usa para interconectar varios dispositivos sobre todo en placas base para conectar componentes como 
+	tarjetas graficas, de red, de sonido...
+
+AQUITECTURA (X86)
+
+	- Tss
+	- Registros para sysenter/sysexit
+
+	- CPU Registers:
+                -ss (stack segment): apunta al segmento de la pila
+                -esp (extended stack pointer): contiene la direccion actual del tope de la pila
+                -psw (program status word o EFLAGS en x86): contiene flags que describen el estado actual 
+							    del procesador(overflow, zero...)
+                -cs (code segment): apunta al segmento de codigo en memoria, define donde esta el codigo que se ejecuta
+                -eip (extended instruction pointer): contiene la direccion de la proxima instruccion que sera ejecutada en la 
+			CPU
+		((¡¡¡Revisar!!!)-__Kernel_ds) -> kernel data segment
+	- General Purpose Registers:
+                -EAX, EBX, ECX, EDX --> Proposito general, aunque cada uno se suele usar para una cosa diferente. En EAX se pone
+					el valor del resultado de una subrutina o interrupcion, 
+		-ESI-> Para manipulacion de datos en memoria. Apunta al origen de los datos en memoria
+		-EDI-> Para manipulacion de datos en memoria. Apunta el destino de los datos en memoria
+		-EBP-> Gestion de pila. Contiene la direccion base de la pila
+		-ESP-> Gestion de pila. Contiene la direccion tope de la pila
+
+<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<CONFIGURACION DEL SO INICIAL>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
 LINKERS (por ejemplo ld)
 
 -El linker combina varios archivos objeto (archivos ya compilados en binario) en un ejecutable, resuelve simbolos y 
- ajusta las direcciones de memoria. Por ejemplo el archivo binario puede tener funciones que hagan referencia a bibliotecas 
- externas, una de las cosas que el linker haria seria coger el trozo de codigo que se usa y integrarlo en el archivo ejecutable 
- resultante
+ ajusta las direcciones de memoria, es lo que se llama montaje. Por ejemplo el archivo binario puede tener funciones que hagan 
+ referencia a bibliotecas externas, una de las cosas que el linker haria seria coger el trozo de codigo que se usa y integrarlo 
+ en el archivo ejecutable resultante
 
 ARCHIVO LDS
 
@@ -35,8 +89,8 @@ ENTRY--> Le dice al linker que el punto de entrada sera la funcion main
 SECTIONS--> Dentro de sections defines como quieres que se coloquen diferentes partes del programa en memoria.
 	-0x10000 (64kB)--> Indica que el codigo del programa comienza en esta direccion
 	-text.main --> subseccion de texto (donde se almacena el codigo) en la que se almacena la funcion main
-	-BYTE(24) --> reserva 24 bytes para almacenar datos relacionados con la gestion de codigo de usuario (puede ser usado por el
-		sistema operativo para guardar datos de control como punteros o descriptores)
+	-BYTE(24) --> reserva 24 bytes para almacenar datos relacionados con la gestion de codigo de usuario (puede ser usado 
+		por el sistema operativo para guardar datos de control como punteros o descriptores)
 	-*(.text.main) --> Instruye al linker para colocar en esta sección cualquier código que esté en la sección .text.main 
 		de los archivos objeto.
 	-.text --> Seccion de codigo ejecutable del programa
@@ -46,86 +100,41 @@ SECTIONS--> Dentro de sections defines como quieres que se coloquen diferentes p
 	-. = ALIGN(4096)--> Alinea al tamaño de una pagina de 4 KB
 	-data.task--> Seccion para los datos relacionados con tareas (procesos o threads)
 
---------------------------------------------------------------------------------------------------------------------------
 
-TASK_STRUCT ARRAY
+<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<BOOTSTRAP --> proceso de INICIALIZACION DEL DISPOSITIVO>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
-union task_union task[NR_TASKS] __attribute__((__section__(".data.task")));
+Power-on da energia al dispositivo pero este no tiene nada configurado. Se pone el pin RESET del procesador a 1 mediante un 
+ciruito hardware, esto carga algunos valores hardcodeados a los registros y se ejecuta el codigo BIOS (Basic Input Output 
+System) de una direccion de memoria concreta almacenada en una ROM (Read Only Memory). Todo desde el inicio hasta que empiece a 
+cargarse el kernel se ejecuta en real mode (direcciones fisicas de memoria).
 
-	-task_union--> Esto es una unión que el task_struct y otras posibles estructuras o datos asociados a las tareas.
+Estructura BIOS o UEFI (Unified Extensible Firmware Interface):
+1) POST (Power-on self test) --> Comprueba que todo el hardware este conectado y funcione correctamente.
+2) Inicializa todos los dispositivos hardware y crea una tabla de dispositivos hardware conectados mediante PCI (Peripheral 
+	Component Interconect)
+3) Busca un sistema operativo para cargarlo
+4) Cuando lo encuentra copia el contenido del primer sector a la RAM (este contenido sera el bootloader, que es el programa 
+	para cargar el OS) y lo empieza a ejecutar
 
-    task[NR_TASKS]--> Es un array de tamaño NR_TASKS (un número máximo de tareas predefinido). 
-	Cada elemento del array es una instancia de la unión task_union, que representa una tarea (proceso o hilo) en el sistema.
+BOOTLOADER --> Es el primer programa del sistema operativo que se ejecuta (<<<CONSULTAR THE LINUX KERNEL, APENDIX A>>>).
+Hace lo siguiente: 
+- 
+- 
+-
+-
+-
+-
+-
 
-    __attribute__((__section__(".data.task")))--> Esto indica al compilador que debe colocar este array en una sección especial 
-	de la memoria llamada .data.task. Esta sección está definida en el script del linker (.lds) y fue alineada a una 
-	página de memoria (4096 bytes) lo cual es importante en sistemas operativos para asegurar que las estructuras críticas 
-(como las de planificación de tareas) estén alineadas en la memoria para mejorar la eficiencia de acceso y el uso de la caché.
+<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<MANEJO DE INTERRUPCIONES>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
-TASK_STRUCT
-
-El task_struct es la estructura que contiene toda la información sobre un proceso o tarea, como:
-
-	-PID (Identificador del proceso)
-	-Estado de la tarea (corriendo, detenido, en espera, etc.)
-	-Punteros a los registros (para restaurar el contexto de la CPU cuando se programa la tarea)
-	-Dirección de memoria (dónde está cargado el proceso en la memoria)
-	-Contadores de tiempo (para la planificación por tiempos)
-	-Referencias a archivos abiertos, señales, etc.
-
-El array task[] contiene todas las tareas o procesos en el sistema. Es como una lista que el sistema operativo usa para hacer un 
-seguimiento de los procesos activos, programarlos, o eliminarlos.
-
-------------------------------------------------------------------------------------------------------------------------------------
-Llamadas a sistema:
-	-Gestion de Procesos:
-		-getpid
-		-fork
-		-exit
-		-exec
-	-Gestion de Memoria:
-		-malloc
-		-free
-		-brk/sbrk
-	-I/O & filesystem
-		-open
-		-read
-		-write
-		-close
-		-lseek
-		-mknod
-	-Soporte para multithreads/multiprocess
-		-pthreads_*
-		-signal
-		-kill
-		-pipe
-		-socket
-		-sem_*
-		-clone
-
-AQUITECTURA (X86)
-
-     CPU Registers:
-                -ss (stack segment): apunta al segmento de la pila
-                -esp (extended stack pointer): contiene la direccion actual del tope de la pila
-                -psw (program status word o EFLAGS en x86): contiene flags que describen el estado actual 
-							    del procesador(overflow, zero...)
-                -cs (code segment): apunta al segmento de codigo en memoria, define donde esta el codigo que se ejecuta
-                -eip (extended instruction pointer): contiene la direccion de la proxima instruccion que sera ejecutada en la CPU
-		((¡¡¡Revisar!!!)-__Kernel_ds) -> kernel data segment
-        General Purpose Registers:
-                -EAX, EBX, ECX, EDX --> Proposito general, aunque cada uno se suele usar para una cosa diferente. En EAX se pone
-					el valor del resultado de una subrutina o interrupcion, 
-		-ESI-> Para manipulacion de datos en memoria. Apunta al origen de los datos en memoria
-		-EDI-> Para manipulacion de datos en memoria. Apunta el destino de los datos en memoria
-		-EBP-> Gestion de pila. Contiene la direccion base de la pila
-		-ESP-> Gestion de pila. Contiene la direccion tope de la pila
-------------------------------------------------------------------------------------------------------------------------------------
-MANEJO DE INTERRUPCIONES --> Salta una interrupcion, el procesador consulta la IDT para determinar la direccion del handler 
-correspondiente, cambio de contexo (el procesador guarda el estado actual del sistema (flags, registros...) en la pila, i cambia
-al modo de ejecucion del nivel de privilegio correspondiente), el procesador usa la GDT para conseguir el codigo y datos necesarios,
-se ejecuta el HANDLER, se restaura al contexto anterior y su nivel de privilegios, finalmente el procesador usa IRET (interrupt 
-return), que indica que hay que restaurar el puntero de la instruccion original.
+1) Salta una interrupcion, el procesador consulta la IDT para determinar la direccion del handler correspondiente
+2) Cambio de contexo (el procesador guarda el estado actual del sistema (flags, registros...) en la pila y cambia al modo de 
+	ejecucion del nivel de privilegio correspondiente). Es decir que guarda registros del contexto hardware y software 
+	del modo usuario en la pila del modo kernel
+3) El procesador usa la GDT para conseguir el codigo y datos necesarios, se ejecuta el HANDLER
+4) Se restaura al contexto anterior y su nivel de privilegios y finalmente el procesador usa IRET (interrupt return), que 
+	indica que hay que volver a ejecutar la siguiente instruccion original (antes de la interrupcion).
 
 Interrupts--> Asynchronous, producido por otros dispositivos hardware de forma inesperada
 
@@ -135,15 +144,15 @@ Systemcalls--> Synchronous, lo causa una instruccion de assembler. Es una llamad
 	       ejecutar una intruccion de sistema que solo puede ejecutar el kernel. En los pc mas antiguos se usa int, en los
 	       mas modernos se usa sysenter.
 
-	-int --> Abreviatura de interrupt, se usa int + entrada IDT. Por lo general es int 0x80. Luego en los diferentes 
-		registros se guardan valores necesarios:
+	-int --> Abreviatura de interrupt, se usa int + entrada IDT. Por lo general para system calls es int 0x80. 
+		En los diferentes registros se guardan valores necesarios:
 			-EAX-> Especifica el tipo de funcion del kernel que se hara (read, write...)
 			-EBX-> Descriptor de archivo (0;stdin(teclado), 1;stdout(pantalla), 2;stderr(error))
 			-ECX-> Direccion del mensaje (¿suele ser la etiqueta msg?)
 			-EDX-> Longitud del mensaje
 
 	-Sysenter/sysexit--> Mecanismo de gestion de interrupciones que se salta el vector de interrupciones (IDT).
-		     Usa los siguientes registros:
+		     Solo para systemcalls. Usa los siguientes registros:
 			-SYSENTER_CS_MSR--> Selector de segmento de codigo del kernel
 			-SYSENTER_EIP_MSR--> Contiene el entry point, la direccion de memoria donde comienza la ejecucion en el 
 					     kernel cuando se invoca sysenter
@@ -156,10 +165,10 @@ IDT (Interrupt Descriptor table) --> Cada entrada tiene un puntero al handler, u
 		-0-31 Excepciones (generadas por la cpu, cuando se divide entre cero o cosas asi)
 		-32-47 Masked/hardware Interrupts (interrupciones hardware, se las llama masked porque si llegan en un momento 
 			critico, se enmascaran/deshabilitan temporalmente hasta que se puedan tratar)
-		-48-255 Software Interrupts (un programa que contenga llamadas a sistema)
+		-48-255 Software Interrupts o Traps: invocadas por software y no por hardware. Se usan para syscalls o 
+			eventos definidos por el usuario o software
 
-GDT (Global Descriptor table) --> Contiene descriptores de segmentos de codigo en memoria. Su direccion, 
-					   tamaño, privilegios...
+GDT (Global Descriptor table) --> Contiene descriptores de segmentos de codigo en memoria. Su direccion, tamaño, privilegios...
 
 Handler--> Funcion que trata una interrupcion
 	-Exception handler:
@@ -171,10 +180,10 @@ Handler--> Funcion que trata una interrupcion
 	-Interrupt handler:
 		-Save hardware context
 		-End Of Interruption (EOI)
-		-Call exception service routine
+		-Call interrupt service routine (ISR)
 		-Restore hardware context
 		-IRET
-	-System call handler (type of software interrupt):
+	-System call handler (type of software interrupt)
 		-Save hardware context and prepare parameters
 		-Execute system call service routine
 		-Update kernel context with the system call result
@@ -187,8 +196,649 @@ Wrapper--> Funcion que sirve de intermediario para simplificar una operacion com
 
 Internamente, este wrapper en C invocará la llamada al sistema de bajo nivel que podría usar int 0x80 o sysenter/syscall
 
-Pilas--> Cada proceso tiene 2 pilas, una de usuario y otra de kernel. La de usuario esta en el espacio de memoria de usuario, y la 
-	del kernel esta en el espacio de direcciones del kernel, separada de la de usuario.
-------------------------------------------------------------------------------------------------------------------------------------
+sysenter/sysexit:
+Se usa para cargar esp guardador en el campo esp0 de la tss entre otros.
+3 registros de control imprescindibles inicializados en tiempo de boot:
+	– SYSENTER_CS_MSR: contains kernel cs selector
+	– SYSENTER_EIP_MSR: contains kernel entry point
+	– SYSENTER_ESP_MSR: points to the TSS base @
+
+Pilas --> Cada proceso tiene 2 pilas, una de usuario y otra de kernel. La de usuario esta en el espacio de memoria de usuario, y 
+	la del kernel esta en el espacio de direcciones del kernel, separada de la de usuario.
+
+WINDOWS:
+
 Para windows la gestion es un poco diferente. La direccion de idt para las sistemcalls con int es 0x2e, y en vez de pasar todos
 los parametros en los registros, solo pasa un puntero con la direccion de memoria donde estaran todos los parametros.
+
+
+<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<PROCESOS>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+ESPACIO DE DIRECCIONES DE UN PROCESO:
+
+- Espacio de direcciones logicas del procesador: Rango de direcciones que puede acceder un procesador. Esta limitado 
+		por el tamaño del bus de @. Es decir, si tienes 32 bits, como mucho tienes 2 a la 32 posiciones, es decir 4GB.
+
+Por proceso:
+
+- Espacio de direcciones logicas del proceso: 
+	Las direcciones que usa un procesador cuando quiere acceder a datos/codigo/pila del proceso. Son relativas a
+	una direccion 0, igual para todos los procesos. Es decir, que cada proceso tendra una direccion 0, pero luego 
+	esta luego se tendra que traducir a una direccion de memoria fisica.
+	Cada proceso tiene las siguientes regiones de datos:
+		- Codigo (text) --> Instrucciones ejecutables
+		- Datos inicializados (data) --> Variables globales y estaticas con valor inicial
+		- Dataos no inicializados (bss) --> Variables globales y estaticas que no tienen un valor inicial
+		- Heap (memoria dinámica)
+		- Pila (usuario y kernel)
+
+- Espacio de direcciones fisicas del proceso: Corresponde a las direcciones físicas de la memoria principal (RAM) asociadas 
+	a direcciones logicas del proceso.
+
+Traducción entre logicas (memoria virtual) y físicas:
+
+La memoria virtual no es mas que todas las tecnicas que se comentan a continuacion para la gestion de memoria de cada proceso.
+Es decir, que cuando hablamos de area de memoria virtual estamos hablando de un conjunto de direcciones logicas concreto.
+
+Hoy en dia se usa un modelo plano sin segmentación significativa + paginacion multinivel (4 o 5 niveles en funcion de la 
+arquitectura). En hardware x86 de 32 bits si se usa segmentacion paginada, es decir una direccion de memoria junto con un 
+tamaño (segmento) que esta subdividido en paginas. La segmentacion que se usa en los modelos de hoy en dia, se llama 
+segmentacion plana, y solo se usa para cosas mas especificas. Un ejemplo son los registros FS y GS que apuntan al segmento
+que contiene la estructura de datos del thread.
+
+- MMU (Memory Management Unit): estructura hardware que se encarga de traducir de @logicas a @fisicas. Depende del procesador
+	este componente varia, pero por lo general su componente principal es el TLB.
+		- TLB (Translation Lookaside Buffer): Memoria asociativa (cache) de acceso mas rápido en la que se 
+			almacenan algunas entradas de la tabla de paginas que son visitadas con mayor frecuencia.
+			Cada vez que se cambia la MMU hay que actualizar/invalidar (flush) el tlb.
+
+- Segmentacion paginada: CPU --> UNIDAD SEGMENTACION --> UNIDAD PAGINACION --> MEMORIA FISICA
+	- Segmentacion: Espacio logico del proceso dividido en segmentos, que a su vez estan divididos en paginas. 
+		Tamaño de segmento es múltiplo del tamaño de pagina (porque el segmento esta subdividido en paginas). 
+		· Tabla de segmentos: Una tabla por proceso. Contiene @base y tamaño de cada segmento.
+		
+	- Paginacion: La unidad de trabajo del sistema operativo.
+		· Tabla de paginas: Una tabla por proceso. Contiene informacion a nivel de pagina como validez, 
+			permisos de acceso, marco asociado...
+			Hay de varios tipos:
+				- Con un solo nivel: cada direccion es una entrada a la tabla de paginas y ya.
+				- Con multiples niveles (en nuestro caso 2): Hay un directorio, que basicamente
+					contiene direcciones de varias tablas de paginas. El flujo de datos seria
+					CR3 (direccion page directory) >> PAGE DIRECTORY >> PAGE TABLE >> PAGE
+
+	- Swap: 
+		Swap es una técnica que permite utilizar parte del disco (swap space o archivo de intercambio) como extensión 
+		de la memoria principal. Cuando no hay suficiente espacio en RAM para todas las páginas activas de un proceso, 
+		el sistema operativo puede copiar algunas páginas de RAM a la región de swap en disco, liberando espacio físico.
+		Al volver a necesitar esas páginas, se produce un page fault y se traen de vuelta a la RAM.
+		La razon por la que se usa esto es que hay muchas paginas de un proceso que no estan asociadas a ningun archivo
+		del disco como la pila, el heap o datos no inicializados, es por eso que es necesario.
+
+
+Gestion de memoria en ZeOS:
+- El SO debe conocer la @base de la tabla de paginas de cada proceso, en ZeOS se guarda en el PCB.
+- En el registor cr3 se guarda ...
+- No tiene un programa para cargar ejecutables en el SO, el codigo de usuario se carga en tiempo de boot.
+- Flujo de accesos a memoria en ZeOS: CR3 >> DIRECTORY >> TABLA
+- Espacio logico de direcciones: 
+  USER MODE: 
+	L_USER_START
+		<<USER CODE>>
+	DATA_START=L_USER_START+(NUM_PAG_CODE*PAGE_SIZE)
+		<<USER DATA + STACK>>
+	DATA_END=DATA_START+(NUM_PAG_DATA*PAGE_SIZE)
+
+  KERNEL MODE: 
+
+	KERNEL_START
+		<<KERNEL CODE>>
+		<<KERNEL DATA + STACKS>>
+	L_USER_START
+		<<USER CODE>>
+	DATA_START=L_USER_START+(NUM_PAG_CODE*PAGE_SIZE)
+		<<USER DATA + STACK>>
+	DATA_END=DATA_START+(NUM_PAG_DATA*PAGE_SIZE)
+
+
+- Espacio físico de direcciones: 
+	<<KERNEL CODE>>
+	<<KERNEL DATA + KERNEL STACKS>>
+	<<USER CODE>>
+	<<P0: USER DATA + STACKS>>
+	<<P1: USER DATA + STACKS>>
+	<<...>>
+
+- Atributos por pagina: 
+	typedef union
+	{
+		 unsigned int entry;
+		 struct {
+		 unsigned int present : 1; presente
+		 unsigned int rw : 1; permisos
+		 unsigned int user : 1; user/supervisor
+		 unsigned int write_t : 1; write through/write_back (linux write back)
+		 unsigned int cache_d : 1; caching is enable (linux sets this)
+		 unsigned int accessed : 1; (reset by OS)
+		 unsigned int dirty : 1; (set by OS)
+		 unsigned int ps_pat : 1; (page_size: normal or big)
+		 unsigned int global : 1; (if set, tlb is not flushed after modifying CR3)
+		 unsigned int avail : 3; (not in use)
+		 unsigned int pbase_addr : 20;
+	 } bits;
+	} page_table_entry;
+
+PROCESOS:
+
+Proceso: programa en ejecucion. Su definicion engloba todo lo necesario para que un programa se ejecute: ejecucion de secuencia 
+	de instrucciones, estado actual, conjunto asociado de recursos...
+
+El task_struct es la estructura que contiene toda la información sobre un proceso o tarea, como:
+	-PID (Identificador del proceso)
+	-Estado de la tarea (corriendo, detenido, en espera, etc.)
+	-Recursos del proceso(paginas de memoria, ficheros abiertos...)
+	-Punteros a los registros (para restaurar el contexto de la CPU cuando se programa la tarea)
+	-Dirección de memoria (dónde está cargado el proceso en la memoria)
+	-Contadores de tiempo (para la planificación por tiempos)
+	-Informacion de planificacion (prioridad, quantum...)
+	-...
+
+El array task[] contiene todas las tareas o procesos en el sistema. Es como una lista que el sistema operativo usa para hacer un 
+seguimiento de los procesos activos, programarlos, o eliminarlos.
+
+union task_union task[NR_TASKS] __attribute__((__section__(".data.task"))); // MAS INFO EN EL ANEXO A
+
+-union task_union--> Esto es una unión que contiene el pcb por arriba y el stack del proceso o pila por abajo. Es decir, 
+ el task_struct esta en la direccion 0 del union y la pila en la sizeof(union).
+
+	union task_union {
+		struct task_struct task;
+		unsigned long stack[1024];
+	};
+
+GESTION DE PROCESOS:
+En la actualidad se combinan dos tecnicas para la creacion y destruccion de procesos. Una es tener la lista FREE con los
+pcb disponibles y la otra es crear y destruir mediante memoria dinamica. Tambien se hace un hibrido de estos dos metodos.
+
+Listas de procesos:
+	READY: procesos esperando a ejecutarse cuando haya una cpu disponible
+	BLOCKED: procesos bloqueados esperando a desbloquearse
+	ZOMBIE: procesos zombie
+	FREE: lista de pcb disponibles para un nuevo proceso
+
+
+Identificacion de un proceso en ejecución: se le aplica una mascara al puntero a la pila esp, porque pila y pcb estan en la 
+	misma pagina (union). Esto lo hace la macro current().
+
+Cambio de contexto: Suspender la ejecución del proceso actual y continuar la ejecución de otro proceso “previamente” 
+	suspendido. Pasos:
+		– Guardar contexto ejecución proceso actual
+			• Hay que guardar el contexto hw y como acceder a él: Se guarda el contexto hw en la pila de kernel,
+				y en el pcb la posicion en la pila para acceder a el
+		– Restaurar contexto ejecución proceso suspendido
+			• Espacio de direcciones: actualizar estructuras mmu
+			• TSS: esp0 tiene que apuntar a la base de la pila de sistema del proceso nuevo
+			• Contexto hardware: restaurar mediante el esp que se guardo en el pcb previamente
+			• Cargar en el PC la direccion del codigo a ejecutar
+
+	De esto se encarga:
+	- task_switch(union task_union * t): funcion en assembler 
+		- Salvar ebp, esi, edi, ebx
+		- Push del parámetro a la pila (push 8(%ebp))
+		- call inner_task_switch
+		- Eliminar parámetro de la pila (addl $4, %esp)
+		- Restarurar registros popl ebx, edi, esi , ebp
+		- ret
+
+	- inner_task_switch(union task_union * t): funcion en C
+		- tss.esp0 = kernel_esp(t);
+		- writeMSR(0x175, tss.esp0, 0); // actualiza el registro 0x175 para que sysenter use la pila que toca al 
+			entrar en modo kernel y asi no tener que entrar a la tss
+		- set_cr3(get_Dir((struct task_struct) * t));
+		- current->kernel.esp = (unsigned long *) get_ebp();
+		- set_esp(t->task.kernel_esp);
+
+Creacion de procesos:
+
+El tipo de creacion de procesos que se explica es para UNIX, existen alternativas, pero para este curso solo hace falta UNIX.
+	- Buscar PCB libre
+	- Inicializar PCB
+		- Asignar PID
+		- Replicar estructuras y campos del proceso padre
+			- Tabla de canales (por proceso)
+			- Ficheros abiertos: Esta tabla no es por proceso, pero ahora los ficheros que se usaban en el 
+				proceso 1, tambien se usaran en el nuevo, asi que en vez de tener un uno en el campo cantidad 
+				de procesos que la usan, tendra un 2. Y cada entrada de la tabla ficheros abiertos apuntará al 
+				inodo correspondiente, es decir, que la tabla de inodos no cambia.
+	- Inicializar espacio de direcciones. Dos metodos:
+		- Copia de toda la memoria del proceso padre: Implica reservar memoria física : fork
+		- Compartición del espacio de direcciones con el proceso padre: Comparticion del espacio de direcciones
+			con el proceso padre: threads (clone en linux)
+	- Encolar PCB
+
+fork: crea una copia del proceso que lo llama
+	• Obtener PCB libre (lista FREE)
+	• Asignar un nuevo PID
+	• Heredar los datos de sistema (PCB i pila)
+	• Asignar un nuevo espacio de @: directorio
+	• Heredar los datos de usuario
+	• Actualizar task_union hijo
+	• Insertar proceso en la lista de procesos READY
+	• Devolver el pid del nuevo proceso creado (0 al hijo)
+
+Ejemplo de codigo de fork:
+
+
+Creacion de procesos iniciales:
+	Init--> Primer proceso de usuario
+		- Coger task_union de la freequeue y luego eliminarlo
+		- init->task.PID = 1
+		- allocate_DIR(&init->task);
+		- set_user_pages(&init->task);
+		- task.quantum = default_quantum
+		- quantum_left = task.quantum
+		- init->task.kernel_esp = &(init->stack[size]);
+		- Actualizar tss y writeMSR(0x175, tss.esp0)
+		- set_cr3(init->task.dir_pages_baseAddr)
+	
+	Idle --> Proceso que solo ocupa cpu cunado no hay ningun otro candidato
+		- Coger task_union de la freequeue y luego eliminarlo
+		- idle->task.PID = 0
+		- allocate_DIR(&idle->task);
+		- Como la pila esta vacia añadir 2 elementos:
+			- stack[size-2] = 0;
+			- stack[size-1] = cpu_idle;
+		- idle->task.kernel_esp = &(idle->stack[size-2]);
+		- idle_task (variable global) = task
+ 
+clone: lo mismo que fork pero para threads
+-----------------------------------
+
+Ejemplo de codigo de clone:
+-----------------------------------
+
+Destruccion de procesos:
+
+	exit: llamada a sistema para destruir el proceso que la llama
+		- Hay que liberar todos los recursos asignados:
+			- liberar espacio de direcciones
+			- liberar pcb: UNIX/LINUX pueden retrasar la liberacion del PCB
+			- Todo lo que sea necesario: Entrada/Salida, semaforos...
+		- Borrar proceso de la lista de procesos en ejecucion
+		- Ejecutar planificacion: seleccionar nuevo proceso y restaurar su ejecucion
+		UNIX: 
+			- Proceso padre se puede sincronizar con el fin de sus hijos (waitpid)
+				- Recoge cause muerte hijo (si exit o si signal)
+				- Parametro del exit
+			- Se guarda esta información en el PCB del hijo: Hasta que el padre no hace waitpid no se libera 
+				(Estado Zombie)
+			- Si el padre muere sin hacer waitpid, el proceso init "adopta" a sus hijos y se encarga de hacer waitpid
+		ZEOS:
+			- exit no recibe parametros
+			- No implementamos sincronización con padre (no hay equivalente a waitpid)
+			- Al hacer exit se liberan todos los recursos del hijo incluido el PCB
+
+Planificacion de procesos:
+	- Estados del proceso
+	- El proceso pasa de Ready a Run en funcion de la politica de planificacion
+	- Existe un planificador. Decide: el siguiente proceso a ejecutar y hasta cuando se ejecutará
+	- Si el proceso que abandona la cpu no ha acabado la ejecucion hay que guardar su contexto de ejecucion
+
+	Algorisme basic:
+		updateSchedulingData()
+		if (mustChangeProcess()) {
+			queueProcess(current())
+			next = selectNext()
+			task_switch(next)
+		}
+
+Planificadores del sistema:
+	Normalmente hay 3 planificadores en el sistema en funcion del tiempo para planificar el proceso:
+		- Corto plazo: procesos pendientes del Procesador
+			- Selecciona el siguiente proceso a ejecutar
+			- Se ejecuta frecuentemente
+				- Cuando acaba/empieza un proceso
+				- Cada cierto tiempo (depende de la planificacion: Ej Round Robin)
+				- Cuando un proceso inicia/finaliza la E/S
+				- Ha de ser eficiente
+			- Se usan diferentes politicas de planificacion:
+				- FCFS (First Come First Served)
+				- Prioridades
+				- Round Robin
+				- ...
+		- Medio plazo: procesos swapped
+			- Encargado de suspender y restaurar posteriormente procesos (swap out y swap in)
+			- Se ejecuta cuando hay escasez de recursos: ej --> muchos procesos ejecutandose
+			- Corrige errores del planificador a largo plazo
+		- Largo plazo: en colas de batch
+			- Controla el grado de multiprogramacion en el sistema
+			- Se ejecuta cunado empieza/acaba un proceso
+			- Opcional en sistemas de tiempo compartido <<REVISAR QUE ES ESTO>>
+
+Politicas de planificacion y vocabulario relacionado:
+
+- Rafaga de CPU --> Intervalo de tiempo consecutivo que un proceso esta ejecutandose en la CPU
+- Rafaga de E/S --> Intervalo de tiempo consecutivo que un proceso esta realizando una E/S
+- Diagramma de Gantt --> Diagrama horizontal que muestra para cada instante que valor toma un cierto parametro. En los apuntes
+	se usa para respresentar el estado o informacion concreta de un proceso a lo largo del tiempo.
+- Estados de un proceso:
+	- Ready: Apropiacion diferida (quiere decir que en el momento que se cambia a ready se gana el derecho de entrar a la 
+		CPU en algun momento más adelante)
+	- Bloqued: Un proceso suele estar bloqued cuando espera un evento
+	- Zombie: Un proceso que ha terminado pero que su proceso padre no ha leido que ha terminado mediante wait() o waitpid()
+	- Running: Apropiacion immediata (basicamente quiere decir que en el momento que se cambia a running entra a la CPU 
+		immediatamente)
+
+Tipos de politicas de planificacion:
+	- No Apropiativas: El SO no expulsa nunca al proceso de la CPU, el proceso abandona esta voluntariamente
+		- FCFS (First Come First Served): Primer proceso en llegar a Ready es el primeo en ser planificado
+	- Apropiativas: El SO puede expulsar procesos de la CPU y darsela a otro. Hay dos tipos:
+		- Diferida:
+			- Round Robin: El SO asigna un tiempo de CPU a cada proceso llamado quantum (puede ser constante o 
+				calculado dinamicamente). El quantum no puede ser ni muy grande ni muy pequeño. Hay variantes
+				donde aparte de esto, tambien se implementan prioridades.
+		- Immediata: En algunas variantes de Round Robin con prioridades se usa apropiatividad immediata. Se tendrian 
+			multiples colas Ready con diferentes prioridades y dentro de cada cola se aplicaria una politica 
+			diferente.
+	- Hibridas: es una mezcla de ambas:
+		- Prioridades: estática, dinámica y estática+dinámica. El proceso mas prioritario es planificado para 
+		ejecutarse. Entre procesos de igual prioridad: fifo (First In First Out). Puede tener potenciales problemas;
+			- Starvation (un proceso nunca se ejecuta por no tener suficiente prioridad). La solucion seria aumentar
+				la prioridad de un proceso conforme envejece (prioridad dinamica). 
+
+En ZeOS: 
+- Round Robin sin prioridad. 
+- Quantum es una caracteristica de cada proceso.
+- Estados: Ready, Run, Blocked
+- Politica apropiativa diferida
+- Idle se ejecuta si no hay nadie mas
+- Lista de procesos libres: free
+
+Estadísticas: Cuanto tiempo esta un proceso en cada estado/modo?
+	Contador que indique ticks en:
+		- User mode
+		- System mode
+		- Ready
+		- Blocked
+
+
+Threads o Flujos: Los threads de un proceso comparten todos los recursos asignados al proceso -> se usa clone para crear threads
+
+Comparten:
+	- PCB y stack del PROCESO (task_union)
+	- Código (code segment)
+	- Datos y heap (data segment and heap)
+	- Archivos abiertos
+
+No Comparten:
+
+	- Estado de los registros: eip, eax, ebx...
+	- Pila: cada thread tiene su pila de thread tanto para usuario como para kernel (supongo, REVISAR) 
+	- Modo kernel: un thread puede entrar a modo kernel aunque haya threads del mismo proceso que no esten en modo kernel
+	- TCB (thread control block): como el PCB pero de threads.
+		- TID
+		- 
+
+LIBRERIA DE THREADS (Basada en POSIX Threads): Deberia implementar metodos para la gestion de estos a nivel de usuario. Ejemplos
+	de metodos que deberia incluir:
+
+	Creación:
+		- pthread_create (pthread_t* tid, pthread_attr_t * attr, void *(* start_routine) (void *), void* arg)
+			Parámetros:
+				- tid
+				- attr
+				- start_routine
+				- arg
+			Que devuelve:
+				- 0 si OK
+				- Codigo de error
+	Identificación: Devuelve el identificador del pthread
+		- pthread_self ()
+	
+	Finalización: lo realiza el flujo que va a morir. Status es el valor que recibirá la funcion que espera la finalizacion 
+		del thread. Es como el exit pero para threads:
+		- pthread_exit (void* status)
+	
+	Sincronización fin de flujo: bloquea el thread que llama a esta funcion hasta que el thread pasado como parametro 
+		finalice.
+		- pthread_join (pthread_t tid, void **status)
+			Parámetros:
+				- thread: Identificador del flujo a esperar
+				- status: Estado de finalización del flujo que estábamos esperando
+			Que devuelve:
+				- 0 si OK
+				- Codigo de error
+
+Sincronización entre procesos: 
+Vocabulario:
+	Region crítica: lineas de codigo que contienen data race
+
+Problema --> Data race: si dos threads acceden a la misma variable puede que uno de los dos flujos lea un valor erroneo.
+Solucion --> Exclusión mútua: se garantiza un acceso a la region crítica secuencial. Es el programador el que se encarga de 
+	identificar las regiones críticas y tratarlas con exclusion mutua de la forma correspondiente.
+
+	- Busy waiting (espera activa): es necesario que haya una instruccion de assembler dedicada a esto. Basicamente se 
+		espera hasta que se pueda acceder a la variable compartida. El problema de esto es que se ocupa tiempo inutil 
+		de cpu.
+
+	- Semáforos: la idea simple es, una vez esta ocupada una region critica, en vez de esperar inutilmente a que este 
+		disponible, el thread que no puede acceder se bloquea hasta que pueda acceder, y entonces de desbloquea. Un 
+		semaforo es una estructura de datos del SO para proteger el acceso a recursos. Tiene asociado un contador y 
+		una cola de procesos bloqueados. El contador indica la cantidad de procesos simultaneos de una seccion crítica.
+		Ejemplo de implementacion de semaforos:
+			– sem_init(sem,n): crea un semáforo
+				sem->count = n;
+				ini_queue (sem->queue);
+			– sem_wait(sem): entrada en exclusión mutua (equivale al lock)
+				sem->count --;
+				If (sem->count < 0){
+				 bloquear_flujo (sem->queue);
+				}
+			– sem_signal(sem): salida de exclusión mutua (equivale al unlock)
+				sem->count ++;
+				If (sem->count <= 0){
+				 despertar_flujo (sem->queue);
+				}
+
+
+		En función del valor inicial del contador usaremos el semáforo para distintos fines
+			– sem_init(sem,1): MUTEX (permitimos que 1 flujo acceda de forma simultanea a la sección crítica)
+			– sem_init(sem,0): SINCRONIZACIÓN
+			– sem_init(sem,N): RESTRICCIÓN DE RECURSOS, genérico
+		Habitualmente usaremos:
+			– Espera activa si los tiempos de espera se prevén cortos
+			– Bloqueo si se prevén largos (bloquear un flujo es costoso (entrar a sistema))
+
+		Problemas:
+			- Deadlock (abrazo mortal): Se produce un abrazo mortal entre un conjunto de flujos, si cada flujo del 
+			conjunto está bloqueado esperando un acontecimiento que solamente puede estar provocado por otro flujo 
+			del conjunto.
+				- Condiciones: minimo de 2 recursos no compatibles, un flujo consigue un recurso y espera por 
+				otro, si un flujo conisigue un recurso solo el puede liberarlo y nadie se lo puede quitar, ha de
+				haber una cadena de flujos donde cada uno necesita un recurso que tiene otro.
+				- Soluciones: no dejar se cumplan las condiciones: tener recursos compartidos, poder quitar un
+				recurso de un thread a otro, poder conseguir todos los recursos que se necesitan de forma
+				atomica y/o ordenar las peticiones de recursos.
+
+En linux:
+int clone(int (*fn)(void *), void *child_stack, int flags, void *arg);
+	– Devuelve el PID del proceso creado
+	– El proceso ejecuta la rutina fn(arg) – es diferente de fork()!!
+	– Se le debe pasar una zona de memoria child_stack para ser usada como pila (lo único que debe tener cada task y que 
+		no puede compartir)
+	– flags:
+		• CLONE_PARENT: el padre del proceso creado es el mismo que el del proceso creador
+		• CLONE_FS: compartición de la información de file system
+		• CLONE_FILES: compartición de la tabla de canales
+		• CLONE_SIGHAND: compartición de la tabla de gestión de SIGNALS
+		• ...
+	– Internamente se usa esta llamada tanto para threads como para procesos
+	– Se indica grado de compartición con el proceso que la usa
+	– En Linux no se hace distinción threads/procesos a la hora de la planificación: todo son tasks que pueden compartir 
+		(o no) recursos con otras tasks.
+	- Task_struct contiene punteros a los datos en lugar de los datos en sí.
+
+En ZeOS:
+- No hay memoria dinamica: tabla con todos los posibles pcb's
+
+- clone similar a linux: REVISAR
+	- Los threads compartirán todo el espacio de direcciones del padre
+	- Comparten directorio y tabla de páginas
+	- Inicialización del contexto hardware
+	- Cada thread empieza con los valores de registros de código y pila indicados como parámetro
+	- Sólo necesitan heredar los valores de los registros de segmentos de datos de usuario
+
+int clone(void (*fn)(void), char *stack);
+	• Parámetros:
+		– fn es la función a ejecutar por el nuevo thread
+		– stack es la base de una zona de memoria para ser usada como pila
+	• Devuelve:
+		– El pid del nuevo thread creado
+		– -1 en caso de error
+
+En windows:
+- Identificacion de un proceso en ejecución: hay un puntero al actual por cada procesador.
+- Cambio de contexto: 
+- Thread incluye
+	– Thread Id
+	– Conjunto de registros
+	– Pila de usuario y pila de kernel
+	– Area de almacenamiento privada
+- Creacion de threads:
+	HANDLE ThreadHandle = CreateThread (
+		NULL, // Default Security attributes
+		0, // Default Stack size
+		rutina, // Routine to be executed
+		&param, // Routine parameter
+		0, // Default creation flags
+		&ThreadId); // Returns Thread Identifier
+	
+	• WaitForSingleObject (ThreadHandle, INFINITE)
+	• CloseHandle ( ThreadHandle )
+<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<GESTION DE ENTRADA/SALIDA>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+Se entiende por E/S la transferencia de informacion hacia/desde un proceso, es necesaria su gestion para intercambiar 
+informacion entre usuarios y entre procesos. Los dispositivos E/S son los que permiten hacer esta transferencia: teclado,
+ficheros, red, pantalla...
+
+Los dispositivos son muy diferentes entre sí. Un acceso a un dispositivo es complejo y muy dependiente del tipo de dispositivo 
+concreto, requiere código de bajo nivel y los accesos simultáneos de varios usuarios podrían provocar interferencias.
+
+El SO se encarga de gestionar el acceso a los dispositivos y garantizar uniformidad de operaciones, que no habra interferencias,
+que se optimizará al máximo el rendimiento de los dispositivos y que se facilitará la incorporacion de nuevos dispositivos
+minimizando los cambios en el codigo del SO.
+
+Tres tipos de dispositivos:
+	- Físico: No son visibles por el nivel de usuario. Device Driver: Codigo de bajo nivel dependiente del dispositivo que 
+		accede directamente a este. Lo proporciona el fabricante del dispositivo e implementa la interfaz definida por 
+		el SO. Se comunica directamente con el hardware (device controller) a traves de los registros del dispositivo.
+	- Lógico: Abstraccion del SO para representar un dispositivo de E/S. Puede tener diferentes asociaciones:
+		- 1 dispositivo hw (teclado)
+		- 2 dispositivo hw (consola: teclado y pantalla)
+		- ningun dispositivo hw (null)
+		Puede añadir funcionalidades sobre un dispositivo hw: ficheros. <<REVISAR>>
+		Visibles des de nivel de usuario. El usuario se refiere a un dispositivo logico para inicializar el uso de un
+		nuevo dispositivo.
+	- Virtual: Interfaz que usa el codigo de un usuario para acceder a un dispositivo. Todos los accesos se hacen a traves
+		de dispositivos virtuales usando el mismo interfaz. El SO ofrece una llamada a sistema para asociar un 
+		dispositivo virtual a un dispositivo lógico. Única llamada que depende del tipo de dispositivo que se quiere 
+		usar.
+
+Flujo de interaccion con dispositivos:
+Usuario
+	- open >> Dispositivo logico // vincula un dispositivo logico con uno virtual
+	- read >> Dispositivo virtual >> Dispositivo logico
+	- close >> Dispositivo virtual >> Dispositivo logico
+
+Uso de dispositivos des de la vision de un Usuario:
+	• int open (char *nombre, int modo, [int permisos])
+	• int close (int canal)
+	• int read(int canal, char *buff, int nbytes)
+	• int write(int canal, char *buff, int nbytes)
+	• dup, dup2, lseek
+	• ioctl, fcntl
+
+Estructuras de datos basicas en UNIX:
+	- Tabla de Canales o dispositivos Virtuales (una por proceso)
+	- Tabla de Ficheros Abiertos --> Características dinámicas
+	- Tabla de I-nodes --> Características estáticas (Device Descriptor)
+	- Directorio
+
+Características dinámicas: modo de acceso, posición... Es decir, que pueden haber diferentes accesos a la vez, o puede cambiar
+	de un acceso a otro, por eso son características dinámicas, porque cambian.
+
+Características estáticas: descriptor de dispositivo (DD). Contiene información como el nombre, propietario, modo... Es 
+	información que no cambia.
+
+Tipos de accesos:
+	- Compartido concurrente: Dos dispositivos virtuales diferentes acceden al dispositivo logico y accediendo a las mismas
+		caracteristicas dinamicas y estaticas.
+	- Compartido no concurrente: Dos dispositivos virtuales diferentes acceden al dispositivo logico accediendo a diferentes
+		caracteristicas dinamicas, que sí acceden a las mismas características estáticas.
+
+Flujo de datos:
+	Tabla de canales (Dispositivo Virtual) >> Tabla de ficheros abiertos (Dispositivo logico) >>
+	Tabla de I-nodes (Descriptor de Dispositivo y punteros a las funciones específicas de dispositivo) >>
+	Device Driver (Dispositivo Físico)
+
+El dipositivo lógico tiene asociado un driver. Cuando el sistema invoca una operacion del dispositivo logico, se invoca
+una funcion especifica del driver, y este se comunica con el dipositivo físico. Esta comunicación puede ser de dos formas:
+	- Por encuesta (polling): la CPU consulta constatemente al dispositivo si se ha realizado la operacion. 
+	- Por interrupciones: El proceso programa la E/S y al finalizar recibe una interrupcion. El proceso puede bloquearse 
+		y ceder la CPU hasta que se reciba la interrupcion.
+
+Mecanismos de acceso al dispositivo:
+	- E/S Síncrona: El proceso de usuario no continua su ejecucion hasta que finaliza la operacion de E/S
+	- E/S Asíncrona: El proceso de usuario se ejecuta concurrentemente mientras se realiza la E/S, y el SO le avisa cuando 
+		este ha finalizado, de forma que puede consultar el estado de las operaciones pendientes.
+	- Implementación: 
+		- Gestores: proceso de sistema encargado de atender y resolver peticiones de E/S. Ejemplo de Gestor:
+			- Algoritmo general:
+				for ( ; ; ) {
+					esperar petición
+					recoger parámetros
+					realizar E/S
+					entregar resultados
+					notificar finalización E/S
+				}
+			- Sincronización proceso gestor y usuario
+				pg 37
+			- Paso de parametros
+
+			- Retorno de resultados
+
+	- Optimizaciones
+
+En linux:
+
+En windows:
+
+<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<COMUNICACIÓN ENTRE PROCESOS>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+pg58
+
+Sockets:
+	- Nivel usuario:
+	- Implementación:
+Pipes:
+	- Nivel usuario:
+	- Implementación:
+
+<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<SISTEMA DE FICHEROS>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+pg93
+
+
+<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<GESTION DE MEMORIA>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+
+
+<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<ANEXO>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+A:
+    __attribute__((__section__(".data.task")))--> Esto indica al compilador que debe colocar este array en una sección especial 
+	de la memoria llamada .data.task. Esta sección está definida en el script del linker (.lds) y fue alineada a una 
+	página de memoria (4096 bytes) lo cual es importante en sistemas operativos para asegurar que las estructuras críticas 
+	(como las de planificación de tareas) estén alineadas en la memoria para mejorar la eficiencia de acceso y el uso de 
+	la caché.
+B: 
+    sleep() --> normalemente se implementa a nivel de thread. Suele pasar lo siguiente:
+	- Se marca como bloqueado en su TCB
+	- El kernel lo coloca en una cola de espera asociada a temporizadores
+	- El scheduler va mirando esta cola de procesos bloqueados a ver si ya toca desbloquear alguno
+	- REVISAR

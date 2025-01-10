@@ -1,4 +1,0 @@
--task_switch no esta predefinido, esta declarado en el .h para que nosotros los implementemos en el archivo c ?
--
--
--
