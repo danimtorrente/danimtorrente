@@ -786,48 +786,530 @@ una funcion especifica del driver, y este se comunica con el dipositivo físico.
 
 Mecanismos de acceso al dispositivo:
 	- E/S Síncrona: El proceso de usuario no continua su ejecucion hasta que finaliza la operacion de E/S
+		Ejemplo de peticion de codigo sincrono a un gestor: 
+			dep_read(fd,buff,size) {
+				 parameters passing
+				 signal(mng_sem)
+				 wait(io_id)
+				 take result and return
+			}
+
 	- E/S Asíncrona: El proceso de usuario se ejecuta concurrentemente mientras se realiza la E/S, y el SO le avisa cuando 
 		este ha finalizado, de forma que puede consultar el estado de las operaciones pendientes.
+		Ejemplo de peticion de codigo asincrono a un gestor: 
+			dep_read(fd,buff,size) {
+				 parameters passing
+				 signal(mng_sem)
+				 return(io_id)
+			}
+			wait_io(id_io) {
+				 wait(id_io)
+				 take result and return
+			}
+
 	- Implementación: 
 		- Gestores: proceso de sistema encargado de atender y resolver peticiones de E/S. Ejemplo de Gestor:
 			- Algoritmo general:
 				for ( ; ; ) {
-					esperar petición
-					recoger parámetros
+					esperar petición (wait)
+					recoger parámetros --> elemento de la cola de IORB
 					realizar E/S
-					entregar resultados
-					notificar finalización E/S
+					entregar resultados --> Se encola el io_fin a la cola de io_fin
+					notificar finalización E/S (signal)
 				}
 			- Sincronización proceso gestor y usuario
-				pg 37
+				- Mediante semaforos (wait --> esperar_peticion/ signal --> enviar_peticion)
+				- Fase 1: Solicitar una operacion E/S: signal para notificar al gestor, el gestor tiene que
+					estar en wait esperando peticiones
+				- Fase 2: Cuando solicita la E/S el proceso usuario se bloquea con wait sobre un semaforo
+					propio y cuando el gestor finaliza envia un signal al proceso de usuario.
 			- Paso de parametros
-
+				- Mediante la estructura IORB (Input/Output Request block). Su contenido depende del 
+					dispositivo. Cada gestor tiene una cola de IORB con las peticiones pendientes. Las
+					rutinas de E/S rellenan y encolan las IORBs. Contenido:
+					- @buffer: buffer de usuario donde estan los datos
+					- Tipo de operacion: Lectura o escritura
+					- id_io: Identificador de la operacion E/S que representa el IORB
+					- @Descriptor de Dispositivo
+					
 			- Retorno de resultados
-
-	- Optimizaciones
+				- Mediante la estructura io_fin: contiene el id de la operacion E/S y su resultado. Tambien
+					hay una cola de resultados por dispositivo y el gestor encola el io_fin y la rutina de
+					E/S lo recoge.
+				
+	- Optimizaciones: 
+		- Buffer: El dispositivo dispone de un buffer donde guarda los datos enviados/recibidos.
+		- Doble buffering
+		- Buffering circular
+		- Spooling: la E/S se realiza sobre un dispositivo intermedio y el sistema la realizará posteriormente osbre el 
+			dispositivo final. Ejemplo: una impresora si esta imprimiendo no puede imprimir otro documento a la vez,
+			asi que al enviarse al dispositivo intermedio se pueden enviar mas peticiones de las que el dispositivo
+			final puede asumir a la vez.
+		- Algoritmos eficientes de acceso: Reordenar peticiones para mejorar la eficiencia en el acceso. Un ejemplo 
+			seria usar politicas de planificacion de acceso a disco. Ejemplo: RAID --> distribucion de un fichero en
+			diversos discos, permite accesos en paralelo y un aumento de la tolerancia a los fallos.
 
 En linux:
+Dispositivos logicos accesibles a traves del sistema de ficheros. Ficheros especiales normalmente situados en /dev 
+(/dev/hda1 o /dev/audio0 ...). Se utilizan con las llamadas a sistema normales (open/read/write...). Se crean mediante mknod,
+asigna dos numeros especiales al fichero, major y minor. Relaciona el dispositivo logico con el fisico. Asigna el tipo de E/S
+por bloques o por carácteres.
+
+Los device drivers son ficheros objeto que se pueden enlazar de forma dinámica con el kernel (modulos). De esta forma solamente
+los drivers en uso estan en memoria (insmod, modprobe). El device driver se registra vinculando sus operaciones con su id.
+Hay diferentes funciones de registro según el tipo de driver
+	• int devfs_register_chrdev (unsigned int major, const char *name, struct file_operations *fops);
+	• int devfs_register_blkdev (unsigned int major, const char *name, struct block_device_operations*bdops);
+	• int register_netdevice(struct net_device *dev);
+	• int register_filesystem(struct file_system_type *);
+	• ...
+
+El major establece la relacion entre el fichero y el driver de dispostivo a utilizar. Los numeros especificos dependen de cada
+SO, en linux 2->pseudo terminales, 3->primer disco ide, 6->impresora...
+
+El minor permite al driver distinguir entre diferentes dispositivos del mismo tipo. Ej: /dev/hda1, /dev/hda2 ....
 
 En windows:
+HANDLE CreateFile(name, access, sharemode, security, creation, attributes, NULL)
+	Función utilizada por el sistema operativo
+		– No es independiente del tipo de fichero
+		– El usuario ha de saber qué tipo de fichero abrirá
 
 <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<COMUNICACIÓN ENTRE PROCESOS>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-pg58
+Metodos de Comunicacion entre procesos:
+	- Memoria compartida
+		- Entre flujos de un mismo proceso. Ej: cualquier variable global
+		- Entre flujos de diferentes procesos. Ej: zona de memoria definida como compartida (shmget, shmat, shmdt...)
+	- Paso de mensajes
+		- Dispositivos para el intercambio de informacion
+			- Sockets: procesos locales o remotos
+			- Pipes: procesos locales. En linux se implementan mediante sockets.
+				- Sin nombre: procesos relacionados por herencia
+				- Con nombre
+	- Signals: Notificación de eventos entre procesos del mismo usuario y en la misma maquina. 
 
-Sockets:
-	- Nivel usuario:
-	- Implementación:
-Pipes:
-	- Nivel usuario:
-	- Implementación:
+Sockets: dispositivo logico de comunicacion bidireccional que se puede usar para comunicar procesos que estan en la misma 
+maquina o en diferentes a traves de la red. Para su creacion es necesario definir:
+	- Tipo de comunicacion:
+		- Orientado a conexion (stream): Se establece un circuito virtual a traves del que se enviara la información,
+			a la hora de enviar no hace falta establecer direccion destion porque ya está configurada.
+		- No orientado a conexión (datagram): No establece circuito virtual. En cada envio se especifica el 
+			destinatario. No se garantiza la recepcion del os paquetes ni su orden de llegada.
+	- Espacio de nombres: para especificar direccion fuente y destino. Si los sockets son para comunicacion entre procesos
+		dentro de una misma maquina: espacio de nombres de ficheros. Si son para comunicación a traves de la red, 
+		espacio de nombres para direccionar dentro de internet:
+			- Identificar host: direccion IP (32 bits si ipv4 o 128 si ipv6)
+			- Identificar socket dentro del host: numero de puerto al que se asocia el socket (16 bits).
+	- Un protocolo de comunicacion: Reglas para transmitir informacion:
+		- TCP: orientado a conexión (stream)
+		- UDP: no orientado a conexion (datagram)
+		- UNIX Local Comunication: para transmision local
+
+Nivel usuario:
+	- Modelo cliente-Servidor:
+		- Servidor: gestiona el acceso a un recurso
+			- Secuencial o interactivo:
+				- Recoge peticion y se la sirve
+				- Resto de clientes tienen que esperar
+			- Concurrente: varios threads o procesos sirviendo peticiones.
+		- Cliente: peticiones de acceso al recurso
+
+	- Modelo de comunicación:
+		- Un socket por proceso: comunicación full-duplex.
+		- Al crear un socket se le asocia un canal
+		- Si se quiere que el socket sea accesible por otros procesos se tiene que publicar su direccion
+			- Stream: solo hace falta que lo publique el servidor
+			- Datagram: tienen que publicarlo tanto los clientes como el servidor
+		- Accesos al socket:
+			- Stream: read y write
+			- Datagram: sendto y recvfrom
+EJEMPLO STREAM
+	Cliente: socket() >> connect() >> write() >> read()
+	Servidor: socket() >> bind() >> listen() >> accept() >> read() >> write()
+
+EJEMPLO DATAGRAM
+	Cliente: socket() >> bind() >> sendto() >> recvfrom()
+	Servidor: socket() >> bind() >> recvfrom() >> sendto() 
+
+socket --> crea socket y asocia canal
+bind --> asocia @ y publica
+listen --> configura conexiones
+accept --> espera solicitud de conexion
+sendto --> indica destino
+
+Endianess: puede ser que lleguen datos en un formato diferente al de nuestra maquina. Estas funciones adaptan la representación 
+interna de la máquina a este formato y al revés:
+	• htons (host to network short)
+	• htonl (host to network long)
+	• ntohs (network to host short)
+	• ntohl (network to host long)
+
+Implementación: MIRAR PRESENTACION PG 69
+
+Pipes: 2 tipos
+	- Sin nombre: solo la pueden utilizar procesos relacionados por herencia
+	- Con nombre: tienen un nombre en el sistema de ficheros que las representa. Al crear el nombre se especifican 
+		los permisos de acceso.
+Tienen un comportamiento FIFO y estan pensadas para ser unidireccionales. Tipos de accesos:
+
+	- Lectura: llamada a sistema read
+		- Si hay suficientes datos en la pipe para servir la lectura se devuelven los datos que se han pedido
+		- Si no hay suficientes datos (pero no esta vacía) se devuelven los datos que hay
+		- Si se intenta leer una pipe vacia
+			- Si no hay ningún canal de escritura asociado a la pipe: devuelve 0
+			- Si hay algun canal de escritura asociado el proceso se bloquea hasta que alguien escribe algo o hasta
+			que se cierran todos los canales de escritura
+			- Importanet cerrar los canales de escritura en la pipe que no son necesarios
+	- Escritura: llamada a sistema write
+		- Si hay espacio en la pipe se escriben los datos y se acaba
+		- Si no hay suficiente espacio se escriben los datos que quepan
+		- Si se intenta escribir y la pipe esa llena, el proceso se bloquea hasta que se pueda escribir
+		- Si no hay ningún canal de lectura asociado a la pipe, el proceso recibe SIGPIPE y el write acaba con error
+
+Creación de dispositivo virtual:
+	- Pipe sin nombre: Crea dos canales (los dos primeros libres): el primero asociado al extremo de lectura de la pipe y 
+	es segundo asociado al extremo de escritura.
+	
+		#include <unistd.h>
+		int pipe(int fd[2])
+
+	- Pipe con nombre: Es necesario que tenga un nombre en el sistema de ficheros:
+		#include <syst/stat>
+		int mknod(char *path, mode_t mode, dev_t dev)
+	Se usa para crear dispositivos logicos de todo tipo, mode codifica tipo de dispositivo y permisos de acceso, dev 
+	contiene major y minor, aunque se ignora en el caso de una pipe. 
+	Para crear una pipe: mknod("nombre", S_IFIFO|S_IRUSR|S_IWUSR);
+	Para usarla: open("nombre", O_RDONLY); // se le pueden añadir flags para evitar bloqueos durante el uso.
+	// Tambien se puede usar fcntl para modificar el comportamiento de dispositivos virtuales como evitar bloqueos.
+
+- Implementación:
+	Tienen asociado un I-nodo: con nombre se crean al cerar el nombre, y sin, se crean al crear la pipe. Inode:
+		– Campo pipe_inode_info
+			• Contiene buffers de memoria y las operaciones sobre ese buffer
+		– Operaciones de acceso a la pipe
+			• Acceden al buffer
+			• Hay una estructura file_operations para cada modo de acceso y para cada tipo de pipe (con nombre y 
+			sin nombre)
+		– Semáforo para implementar los bloqueos
 
 <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<SISTEMA DE FICHEROS>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-pg93
+Fichero:
+	- Para Usuario: conjunto de informacion relacionada que tiene un nombre
+	- Para sistema: secuencia de bytes y dispositivo logico.
+
+Sistema de ficheros: Conjunto de estructuras de datos y algoritmos para almacenar, localizar y recuperar información de un
+dispositivo de almacenamiento persistente (ej. Disco). Tareas:
+	- Gestionar espacio de almacenamiento
+	- Encontrar/almacenar los datos de los ficheros
+	- Organizar los ficheros en el sistema
+	- Garantizar las protecciones de los ficheros
+	- Gestion del espacio de nombres
+
+Interfaz de usuario: Se accede mediante el interfaz E/S
+	- Acceso a ficheros: open, read, write, close...
+	- Gestion: link, unlink, chmod, chown...
+
+Descripcion basica de HW:
+- Discos mecánicos:
+	- Unidad de trabajo Sector: 512 bytes, asignación y tranferencia
+	- Tiempo de acceso (dominado por seektime)
+		- Seek time: posicionamiento en pista y espera del sector
+		- transferencia
+
+- Almacenamiento SSD (Solid State Drive)
+	- Unidad de trabajo Sector: 4096 bytes, asignacion y transferencia
+	- Tiempo de acceso: transferencia (no hay seektime, acceso directo)	
+
+Los sistemas de ficheros tradicionales no estan pensados para las características de SSD y su rendimiento degrada con el uso.
+
+Organización del espacio de disco:
+	- Particiones de disco:
+		- Cada disco puede dividirse logicamente en particiones
+		- Cada particion puede soportar un sistema de ficheros diferente
+		- Maximo de 4 particiones por disco
+	- Tipos de particiones
+		- Primaria: soporte para un sistema de ficheros
+		- Extendida: su objetivo es solventar la limitacion del numero maximo de particiones, tiene soporte para 
+			dividir una particion primaria y crear nuevas particiones logicas.
+
+Organización de una partición:
+	- En una partición hay:
+		- Datos: información guardada por el usuario
+		- Metadatos: información necesaria para gestionar los datos y guardada por el sistema de ficheros
+
+	- Esta organizada en bloques (1 bloque = n sectores), es la unidad de trabajo del sistema de ficheros 
+	(acceso y transferencia). <<La correspondencia bloque sector puede ser fija, variable, grande, pequeña...
+	Si los bloques son pequeños se aprovecha mejor el espacio pero hay que hacer muchos accesos, si los bloques son grandes
+	aumenta el rendimiento porque hay menos accesos pero se desaprovecha mas espacio>>	
+
+	- Gestion del espacio libre: localización de los bloques libres.
+		Tener los bloques de tamaño fijo provoca que haya fragmentación, pese a ello, sigue siendo lo que mas se usa 
+		por la complejidad elevada de la implementación de bloques de tamaño variable. Esta complejidad haria que sea 
+		menos eficiente por el tiempo y recursos que se perderian en hacer los calculos y preparativos necesarios.
+
+	- Gestion del espacio ocupado: asignación de bloques a ficheros y localizacion de los bloques de un fichero.
+
+El sistema de ficheros utiliza una estructura donde se guarda la relacion entre el archivo y su espacio asignado. Normalmente
+es accesible a través del directorio.
+
+Mecansimos de asignación de bloques de memoria:
+	- Asignación contigua: todos los bloques del archivo se asignan de manera consecutiva: CDROM, DVDs... Para cada archivo
+		se necesita guardar bloque inicial y longitud del archivo. 
+
+		- Ventajas: Acceso eficiente al dispositivo y localización del bloque i-ésimo sencilla
+
+		- Desventajas: se produce fragmentación externa y necesita asignación previa (determinar tamaño a priori)
+
+	- Asignación enlazada/encadenada --> cada bloque de datos reserva espacio para un puntero que indica cual es el 
+		siguiente bloque del archivo. Para cada archivo se necesita guardar el bloque inicial.
+
+		- Ventajas: asignación previa o dinámica y no hay fragmentación externa
+
+		- Desventajas: para acceder al bloque i-ésimo hay que recorrer los anteriores (adecuado para accesos 
+			secuenciales terrible para accesos directos). Poca fiabilidad, un fallo de un bloque seria crítico.
+
+	- Asignacion enlazada/encadenada en tabla (FAT) --> Se enlazan tambien los bloques con punteros pero los punteros se 
+		guardan en una tabla en lugar de ponerlos en los bloques de datos. Esta tabla se llama 
+		FAT (File Allocation Table). Para cada archivo se necesita guardar nombre + bloque inicial + tamaño 
+		(+info adicional). Para acceder al bloque i-ésimo basta con acceder a la tabla. El único inconveniente es que
+		cuando los discos son grandes las tablas son grandes también.
+
+	- Asignación indexada --> Existe un bloque índice para cada archivo y este índice contiene un vector de identificadores
+		de bloques. Al final hay un puntero al siguiente bloque índice o a null. En cada entrada referencia a bloque de
+		índices. 
+		- Ventajas: Buen acceso secuencial y directo
+		- Desventajas: Perdida de espacio para archivos pequeños (bloques de grandes indices) y muchos accesos en
+			ficheros grandes (el numero de bloques de datos que un archivo puede usar esta limitado por el 
+			tamaño del bloque indice<<REVISAR>>).
+
+	- Asignación indexada multinivel --> En el bloque índice principal existen algunos apuntadores indirectos que apuntan 
+		a nuevos bloques indices. Se crea una estructura jerárquica de bloques índice. i-nodo: contiene índices 
+		directos e índices indirectos.
+		- Ventajas: muy pocos accesos, incluso en ficheros grandes y poca perdida de espacio en ficheros pequeños
+		- Desventajas: añadir o borrar datos que no estan al final del fichero.
+
+Gestion del espacio libre: 
+	- Bitmaps
+	- Chained free portions
+	- Indexing: free space as a file
+	- Free block list
+
+Gestion del espacio de nombres:
+	- El espacio de nombres ofrece al usuario una vicion de todos los ficheros contenidos en el sistema de ficheros
+	- Cada fichero debe tener un nombre simbólico
+	- Define reglas específicas para crear nombres: EJ: en MSDOS nombres de 8 carácteres + 3 para extensión
+	- Permite traducir los nombres de los ficheros a su ubicación en el sistema de ficheros
+
+Gestion del espacio de nombres: Directorios
+	- Archivo especial gestionado por el SO --> llamadas especificas de acceos y creación, no accesible directamente 
+		mediante read/write
+	
+	- Da acceso a la información sobre los archivos
+		- Atributos: Tipo de archivo, fechas de creacion, permisos ...
+		- Ubicación en el dispositivo de almacenamiento
+	
+	- Si la información está dentro del directorio dificulta la creacion de links (diferentes nombres para un mismo archivo)
+		- Estructura separada y el directorio solo referencia a ella
+	
+	- Operaciones de gestión: buscar, crear, borrar, enumerar, ectualizar entradas
+
+Ejemplo: UNIX 
+
+- MBR (Masater Boot Record) --> sector ubicado al inicio del disco (sector 0) para gestionar el disco y arrancar el SO.
+
+Ext2: 
+- Metadatos
+	- Sector de arranque (boot) --> Info basica para arrancar el SO instalado en la partición
+	- Superbloque 
+		- Formato del SF (tamaño bloque, #inodes, #inodes libres, #bloques datos ,#bloques libres,…)
+		- Gestión espacio libre/ocupado: inodes, cuál es el inode raíz, acceso a bloques libres, acceso a inodes libres 
+	- Inodos --> asignación de bloques indexada multinivel
+		- Bloque con información del archivo: Tamaño, tipo, protecciones...
+		- Indices a bloques de datos (1 - 4kb) --> 
+			- 10 índices directos, 
+			- 1 índice indirecto, 
+			- 1 índice indirecto doble
+			- 1 índice indirecto triple
+- Datos
+	- Bloques de tamaño fijo
+- Directorio
+	- Enlaza un nombre de fichero con su inodo
+	- Los atributos del fichero se encuentran en el inodo
+
+Hay Ext3 o 4, son esquemas similares a la version 2 pero mas robustos ante posibles fallos a cambio de menor rendimiento. Las 
+particiones se montan como /dev/sda1 o 2 .... 
+
+Arquitectura del sistema de ficheros:
+	- Capas: 
+		proceso >> llamadas a sistema >> sistema de ficheros logico >> modulo organización archivos	
+		>> sistema de ficheros físico >> drivers de disco, cinta o red
+		
+		- Sistema de ficheros logico: Proporciona la abstraccion fichero para realizar la E/S. Gestiona el espacio de
+			nombres (directorio) y contiene la información necesaria para el siguiente nivel. 
+		- Modulo de organización de archivos: correspondencia de archivos con bloques y gestion del 
+			espacio libre/ocupado
+		- Sistema de ficheros físico: Emite comandos al driver del dispositivo para leer/escribir bloques
+
+	- Montaje de sistemas de ficheros: para acceder al sistema de ficheros de un dispositivo primero se ha de montar.
+		- Montar: significa incluir el dispositivo (la partición) en el SF que maneja el SO para que sea accesible a 
+			través de un directorio (punto de montaje). / es el dispositivo raíz que se monta en el directorio /
+			del sistema de ficheros. Los demas dispositivos se pueden montar en cualquier directorio de sistema
+			de ficheros.
+
+- Linux: 
+	- VFS (Virtual File System): proporciona un mecansimo orientado a objetos para acceder a todos estos sistemas
+	de ficheros usando la misma interfaz de llamadas a sistema. Estructuras de datos en 2 niveles:
+		- Independientes del sistema de ficheros: Contiene descripciones de los sistemas soportados y son 
+			consultadas y modificadas por las llamadas a sistema (sys_open, sys_read...)
+		- Dependientes del sistema de ficheros: estructuras internas para identificar ficheros, gestion del 
+			espacio de disco ... Consultadas/modificadas por las rutinas específicas del VFS. 
+			(sys_open_ext2(), sys_read_ext2...)
+
+Los siguientes ejemplos son tipos de sistemas de ficheros logicos y modulos de organizacion de arhivos, abarcan ambos campos: 
+llamadas a sistema >> VFS >> ext2, ext3, ntfs, nfs, xfs... >> sistema de ficheros fisico >> drivers
+		
+	- Estructuras Linux: Cada proceso tiene una tabla de canales --> struct files_struct. Cada canal apunta a un 
+		ficheros abierto y contiene información sobre el dispositivo virtual. La tabla de ficheros abiertos
+		es global a todo el sistema --> struct file, contiene posición actual, modo de acceso... cada fichero
+		abierto apunta a su entrada de directorio. Para evitar accesos a disco inecesarios, los datos/metadatos
+		mas usados se guardan en memoria: 
+			- Superbloque
+			- Cache de bloques (buffer cache): hay una cache para cada sistema de ficheros.
+			- Cache de directorios (struct dentry): entradas de directorio usadas.
+			- Tabla de inodos (struct inode): la estructura inode con sus operaciones.
+Flujo de datos seria: 
+tabla de canales (files_struct)>> tabla de ficheros abiertos (struct file) >> struct dentry >> tabla de inodos (struct inode)
+
+Todas estas estructuras estan en C pero orientadas a objetos y tiene datos y codigo para acceder a ellas: file_operations,
+dentry_operations y inode_operations.
+EJ: 
+Cas Read: sys_read (…)
+	• vfs_read (file, buf, count, &pos)
+		– Llama a file -> f_op -> read (file, buf, count, &pos)
+Cas open: sys_open (filename, flags, mode)
+	• filp_open (filename, flags, mode)
+		– open_namei (filename, flags, mode, &nd) crea dentry (si no existia)
+			» dentry_open (nd.dentry, nd.mnt, flags);
+				- Llama a file -> f_op -> open (inode, file)
 
 
 <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<GESTION DE MEMORIA>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+- Memoria dinámica: mecanismo para gestionar de forma dinámica el espacio ocupado/libre de memoria. Permite reservar/liberar
+  memoria en tiempo de ejecución. Esencialmente tiene dos operaciones: 
+	· Reservar (malloc)
+		- Validar nuevas zonas del espacio logico de direcciones: MMU y estructura de datos del SO que describe el 
+			espacio
+		- Asignar memoria física
+	· Liberar (free)
 
+	- Memoria dinamica para el sistema operativo:
+		- Primera aproximación: sistema cutre (es cutre porque no se puede liberar memoria, solo reservar)
+			- Definir zona de memoria estática
+			- Gestionar el espacio libre/ocupado en esta zona
+			- Solo se aceptan reservas: puntero a la última direccion valida no usada y la reserva incrementa ese 
+				puntero
+		- Buddy system: allocation en potencias de 2
+			- Estructura para mantener los bloques libres de la memoria física
+			- Solo reserva tamaños que son potencias de 2 (splitting)
+			- Operaciones para dividir un bloque en 2 o juntar 2 bloques consecutivos (coalescing)
+			Ejemplo de uso: inicialmente se tiene toda la memoria seleccionada y se va dividiendo en 2 hasta 
+			conseguir el tamaño deseado, y para librerar memoria se van junta los bloques que se han separado
+			previamente.
 
+		- Slab allocator: Intenta resolver problemas buddy system. Es un mecanismo para reutilizar memoria de manera 
+			eficiente en el kernel de SO. Se usa porque ciertas estructuras como PCB o semaforos son creadas y 
+			destruidas continuamente y si solicitaramos y liberaramos memoria cada vez seria lento y fragmentaria la
+			memoria. Funciona de forma que, reserva bloques de memoria grandes(slabs) en una fase inicial. Luego
+			divide esos slabs en objetos más pequeños del mismo tipo y reutiliza los objetos (como semaforos o PCB)
+			ya creados en vez de liberarlos completamente. Se usan caches para guardar objetos del kernel.
+			- Slab: Region de memoria de 1 o más paginas consecutivas
+			- Cache: Agrupación de 1 o más slabs. Cada cache contiene objetos del mismo tipo (mismo tamaño) y 
+			información de si está en uso o no. 1 cache para PCBs, otra para semaforos, otra para ficheros...
+			Estas cache son estructuras SOFTWARE no hardware.
 
+	- Memoria dinamica para el usuario: el sistema se encarga de satisfacer las peticiones del usuario. Implica que el 
+		espacio de direcciones varíe. En concreto la zona especial reservada para memoria dinámica: heap
+		- sbrk:
+			- void * sbrk (int incr) --> incrementa el heap en incr bytes, reservando esa cantidad en sistema. 
+				Para decermentar simplemente se le pasa un parámetro negativo. Devuelve la dirección de 
+				memoria a usar. Esto lo hace simplemente asignando paginas de memoria fisica para cubrir el
+				espacio solicitado. Tambien evidentemente, actualiza las tablas de paginas.
+ 
+		- malloc/free:
+			- Doug Lea allocator (dlmalloc) --> Algoritmo muy popular para implementar malloc y free
+				La memoria dinámica se organiza en chunks, que son bloques alineados a 8 bytes. Contienen:
+					- Cabecera: informacion sobre su tamaño y un bit para indicar si esta libre o no
+					- Zona de memoria usable: memoria disponible para el usuario
+				- malloc: busca un chunk libre que sea lo suficientemente grande para satisfacer la solicitud
+					- Si hay: se usa
+					- Si hay más grande de lo necesario: se divide (splitting) en dos chunks, uno del 
+						tamaño solicitado y otro que pasará a estar libre. 
+					- Si no hay: se solicita más memoria al sistema mediante sbrk
+				- free: marca el chunk como libre e intenta fusionarlo (coalescing) con los chunks libres 
+					adyacentes para evitar fragmentación.
+			Problema: fragmentación
+				- Interna: espacio de un chunk que no es usado completamente
+				- Externa: espacio entre chunks libres que no se pueden utilizar directamente porque estan 
+					fragmentados
+			Solucion: bins (cubetas)
+				- El allocator matiene listas de chunks libres organizadas por tamaño
+				- Facilita la búsqueda rápida de bloques libres
+
+El flujo habitual del heap seria tener una cantidad de memoria dinamica inicial administrada mediante malloc/free, y si esta
+se necesita aumentar o disminuir entonces llamar a sbrk.
+
+- Memoria virtual: Tecnica que permite espacios de direcciones logicos mayores que los físicos.
+	- Primera aproximación: intercambio de procesos (swapping)
+		- Si no hay suficiente memoria libre se expulsa a otro proceso al area de swap(swap out)
+		- Almacén secundario o de soporte (backing storage): espacio de intercambio; area de swap
+		- Reanudar la ejecución de un proceso swapped out --> swap in
+	- Evolución de la idea: expulsar solo partes de procesos y aprovechar granularidad de la paginación
+		- Algoritmo: 
+			- Detectar memoria no residente
+			- Asignar memoria física mediante un algoritmo de reemplazo y guardar la memoria víctima en el area de
+				swap
+			- Recuperar memoria del backing storage
+		- Para llevar a cabo el algoritmo anterior se necesita hw para la traduccion y deteccion de memoria no residente
+			(memoria en el area de swap)
+			- Mismo mecanismo que para carga bajo demanda
+			- Excepción de page fault
+		- Memoria virtual basanda en paginación
+			- Espacio lógico de un proceso está distribuido entre memoria física (páginas residentes) y área de 
+			swap (páginas no residentes)
+				- Asignación de memoria física:
+					- Estructura de datos para saber los frames libres
+					- Algoritmo de selección
+					- Actualizar espacio de direcciones con el frame seleccionado
+					- Algoritmo de reemplazo:
+						- Optimo (Se expulsa la que no se va a utilizar en un futuro inmediato): no se
+							puede implementar, se basa en predecir.
+						- FIFO (first in first out)			
+						- LRU (Least Recently Used)
+
+	- Estructuras de datos en linux:
+		- Espacio de direcciones: Tabla de paginas, mm_struct: lista de regiones (vm_area_struct)
+		- Frames libres: organizados en listas
+		- Area de swap: partición de disco o fichero: vm_area_struct contiene la posicion de la región en disco
+		- Algoritmo de reemplazo: LRU second chance
+			- Bit de referencia en la tabla de paginas: cada vez que se accede a una pagina se marca como
+				referenciada y cada vez que se ejecuta el algoritmo de reemplazo: 
+				- Paginas referenciadas: se limpia el bit y se invalida el acceso
+				- Paginas no referenciadas: se seleccionan como victimas
+
+			- Rango de memoria libre: se comprueba al servir un fallo de página y cada cierto tiempo y se limpian
+				n frames.
+			- Parámetros configurables por le administrador
+
+- Memoria compartida: entre threads ya se comparte si pertenecen al mismo proceso. Entre procesos no.
+	- Nivel usuario: hay comandos específicos para compartir regiones de memoria: 
+		- shmget: crear región
+		- shmat: mapear en el espacio de direcciones
+		- shmdt: liberar del espacio de direcciones
+		- shmctl: eliminar región 
+	También hay comandos para acceder a ficheros a traves de memoria:
+		- mmap: mapeo
+		- munmap: desmapeo 
+	
 <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<ANEXO>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
 A:
@@ -842,3 +1324,7 @@ B:
 	- El kernel lo coloca en una cola de espera asociada a temporizadores
 	- El scheduler va mirando esta cola de procesos bloqueados a ver si ya toca desbloquear alguno
 	- REVISAR
+C: 
+    ENDIANESS
+	- Big Endian: byte de mayor peso en direccion baja
+	- Little Endian: byte de mayor peso en direccion alta
