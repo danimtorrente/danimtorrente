@@ -1,0 +1,9 @@
+- Sysenter de donde saca ss? tengo entendido que se guarda en la gdt para cada proceso pero no estoy seguro. Sé que esp de 
+un registro pero esp es el desplazamiento que se le aplica a ss, entonces no se por que no se hizo un registro sysenter_ss 
+para ir más rapido (quizas estoy diciendo una barbaridad pero realmente no lo se). 
+- El switch_stack que habeis implementado tiene un popl ebp que no acabo de entender. Entiendo que sirve para restaurar el
+ebp del nuevo proceso, pero no entiendo en que momento se ha puesto ahí, pues lo que hay más arriba en la pila es la 
+dirección de retorno, y al cambiar la pila a la del nuevo proceso, deberia seguir habiendo una dirección de retorno porque 
+el último punto de ejecución de la otra pila deberia ser el mismo.
+- El copy_memory_from se supone que tiene que buscar 2 paginas libres consecutivas, pero no acabo de entender como. Osea
+soy consciente de toda la teoria del tlb, tabla d paginas... pero a la práctica no sé exactamente cómo comprobarlo

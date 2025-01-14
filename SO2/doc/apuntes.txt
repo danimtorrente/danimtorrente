@@ -43,8 +43,8 @@ AQUITECTURA (X86)
                 -psw (program status word o EFLAGS en x86): contiene flags que describen el estado actual 
 							    del procesador(overflow, zero...)
                 -cs (code segment): apunta al segmento de codigo en memoria, define donde esta el codigo que se ejecuta
-                -eip (extended instruction pointer): contiene la direccion de la proxima instruccion que sera ejecutada en la 
-			CPU
+                -eip (extended instruction pointer): contiene el desplazamiento que hay que realizar sobre cs para obtener la 
+			direccion de la proxima instruccion que sera ejecutada en la CPU
 		((¡¡¡Revisar!!!)-__Kernel_ds) -> kernel data segment
 	- General Purpose Registers:
                 -EAX, EBX, ECX, EDX --> Proposito general, aunque cada uno se suele usar para una cosa diferente. En EAX se pone
@@ -53,6 +53,19 @@ AQUITECTURA (X86)
 		-EDI-> Para manipulacion de datos en memoria. Apunta el destino de los datos en memoria
 		-EBP-> Gestion de pila. Contiene la direccion base de la pila
 		-ESP-> Gestion de pila. Contiene la direccion tope de la pila
+	- Segment registers: 
+		- DS (Data Segment)--> Segmento por defecto para acceder a datos generales en memoria
+		- ES (Extra Segment)--> Segmento adicional para datos
+		- FS --> Segmento adicionales introducidos para mayor flexibilidad
+		- GS --> Segmento adicional introducido para mayor flexibilidad
+
+
+Para obtener la direccion de la proxima instrucción hay que distinguir en que momento se calcula:
+	- Modo real (16 bits): CS y EIP determinan la dirección física en memoria porque le valor de CS es un selector que 
+		multiplica por 16 para obtener la base del segmento
+	- Modo protegido (32 bits): CS no almacena directamente la dirección base, sino un selector de descriptor que apunta a 
+		una tabla de descriptores en memoria (GDT o LDT)
+Para obtener la dirección de la pila pasa lo mismo, en ss se guarda la dirección base de la pila y en esp el desplazamiento
 
 <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<CONFIGURACION DEL SO INICIAL>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
@@ -118,23 +131,29 @@ Estructura BIOS o UEFI (Unified Extensible Firmware Interface):
 
 BOOTLOADER --> Es el primer programa del sistema operativo que se ejecuta (<<<CONSULTAR THE LINUX KERNEL, APENDIX A>>>).
 Hace lo siguiente: 
-- 
-- 
--
--
--
--
--
+- Configurar el modo de operación de la CPU (real mode o protected mode)
+- Inicializar controladores esenciales como el controlador de disco, teclado o pantalla si no lo ha hecho ya el firmware
+- Establecer una pila básica para las operaciones iniciales del bootloader
+- Identificar el dipositivo de arranque (disco, ssd, red...)
+- Leer el sistema de arcvhivos del dispositivo (fat32, ssd, usb, red...)
+- Configurar descriptores de segmento, tablas de memoria, espacio de direcciones y registros críticos
+- Cambio de control al sistema operativo
+
+FIRMWARE --> Software de bajo nivel que está embedido en un dipositivo hardware. Actua como capa intermedia entre el hardware
+y el software más complejo, proporcionando funciones básicas necesarias para que el hardware funcione correctamente y para 
+iniciar otros sistemas software como un sistema operativo. En el ejemplo anterior y en la mayoria de PC (persona computers), 
+el firmware es la BIOS o el UEFI.
 
 <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<MANEJO DE INTERRUPCIONES>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
 1) Salta una interrupcion, el procesador consulta la IDT para determinar la direccion del handler correspondiente
-2) Cambio de contexo (el procesador guarda el estado actual del sistema (flags, registros...) en la pila y cambia al modo de 
-	ejecucion del nivel de privilegio correspondiente). Es decir que guarda registros del contexto hardware y software 
-	del modo usuario en la pila del modo kernel
-3) El procesador usa la GDT para conseguir el codigo y datos necesarios, se ejecuta el HANDLER
-4) Se restaura al contexto anterior y su nivel de privilegios y finalmente el procesador usa IRET (interrupt return), que 
-	indica que hay que volver a ejecutar la siguiente instruccion original (antes de la interrupcion).
+2) Cambio de contexo: el procesador guarda el estado actual del sistema, en concreto el contexto hardware en la pila y cambia 
+	al modo de ejecucion del nivel de privilegio correspondiente.
+3) El procesador usa la GDT para conseguir el codigo y datos necesarios, se ejecuta el HANDLER. Aqui es donde se guarda el 
+	contexto software
+4) Se restaura al contexto software anterior y su nivel de privilegios y finalmente el procesador usa IRET (interrupt return), 
+	que restaura el contexto hardware, indicando que hay que volver a ejecutar la siguiente instruccion original 
+	(antes de la interrupcion).
 
 Interrupts--> Asynchronous, producido por otros dispositivos hardware de forma inesperada
 
@@ -143,6 +162,10 @@ Exceptions--> Synchronous, interrupciones generadas por la CPU despues de termin
 Systemcalls--> Synchronous, lo causa una instruccion de assembler. Es una llamada al kernel des de un programa de usuario para 
 	       ejecutar una intruccion de sistema que solo puede ejecutar el kernel. En los pc mas antiguos se usa int, en los
 	       mas modernos se usa sysenter.
+
+Cuando se cambia a modo kernel, si se usa el mecanismo tradicional int se saca el ss y el esp de la tss, de los campos ss0 y 
+esp0, en cambio si se usa sysenter, se configura de forma que en la gdt está el valor de ss que sysenter cogerá para calcular
+la dirección de la pila correspondiente, y así no se tiene que acceder a la tss. 
 
 	-int --> Abreviatura de interrupt, se usa int + entrada IDT. Por lo general para system calls es int 0x80. 
 		En los diferentes registros se guardan valores necesarios:
@@ -168,43 +191,69 @@ IDT (Interrupt Descriptor table) --> Cada entrada tiene un puntero al handler, u
 		-48-255 Software Interrupts o Traps: invocadas por software y no por hardware. Se usan para syscalls o 
 			eventos definidos por el usuario o software
 
-GDT (Global Descriptor table) --> Contiene descriptores de segmentos de codigo en memoria. Su direccion, tamaño, privilegios...
+GDT (Global Descriptor table) --> Contiene descriptores de segmentos de código en memoria. Su direccion, tamaño, privilegios...
 
 Handler--> Funcion que trata una interrupcion
 	-Exception handler:
-		-Save hardware context
+		-Save software context
 		-Call exception service routine
-		-Restore hardware context
 		-Remove error code (if present) from kernel stack
+		-Restore software context
 		-Return to user (IRET)
-	-Interrupt handler:
-		-Save hardware context
+	-Interrupt handler (como son interrupciones hardware necesita enviar la señal EOI para sincronizarse correctamente, 
+		como interrupciones software (Excepciones y llamadas a sistema ...) ya son del sistema, no es necesario):
+		-Save software context
 		-End Of Interruption (EOI)
 		-Call interrupt service routine (ISR)
-		-Restore hardware context
+		-Restore software context
 		-IRET
-	-System call handler (type of software interrupt)
-		-Save hardware context and prepare parameters
+	-System call handler (type of software interrupt): aqui hay que tener en cuenta que en la seccion update kernel context
+		habrá que modificar el valor de la posición donde esté eax en la pila, y cargarle el valor de eax después de la
+		service routine, porque si no se hace, al hacer restore all se perderia el retorno de esta función.
+		-Save software context and prepare parameters
 		-Execute system call service routine
-		-Update kernel context with the system call result
-		-Restore hardware context
+		-Update kernel context with the system call result (en nuestro sistema 24(%esp) des del handler
+		-Restore software context
 		-IRET
+
 
 Wrapper--> Funcion que sirve de intermediario para simplificar una operacion compleja, como una llamada al sistema operativo
 	Ejemplo de wrapper para la llamada a sistema write en lenguaje C: 
 		-ssize_t write(int fd, const void *buf, size_t count);
 
-Internamente, este wrapper en C invocará la llamada al sistema de bajo nivel que podría usar int 0x80 o sysenter/syscall
+Internamente, este wrapper en C invocará la llamada al sistema de bajo nivel que podría usar int 0x80 o sysenter/syscall. El
+wrapper solamente tiene que pasar los parámetros correspondientes guardandolos de izquierda a derecha de ebx hacia el resto:
+EBX, ECX, EDX, ESI, EDI ,EBP
 
 sysenter/sysexit:
-Se usa para cargar esp guardador en el campo esp0 de la tss entre otros.
 3 registros de control imprescindibles inicializados en tiempo de boot:
 	– SYSENTER_CS_MSR: contains kernel cs selector
 	– SYSENTER_EIP_MSR: contains kernel entry point
-	– SYSENTER_ESP_MSR: points to the TSS base @
+	– SYSENTER_ESP_MSR: contains esp (kernel stack)
 
 Pilas --> Cada proceso tiene 2 pilas, una de usuario y otra de kernel. La de usuario esta en el espacio de memoria de usuario, y 
-	la del kernel esta en el espacio de direcciones del kernel, separada de la de usuario.
+	la del kernel esta en el espacio de direcciones del kernel, separada de la de usuario. Ejemplo de pila de kernel con 
+	contexto hardware y software guardado en el handler (si fuera dentro de una service routine, tendria arriba dos
+	elementos más, ebp y @ret):
+CONTEXTO SOFTWARE:
+	EBX
+	ECX
+	EDX
+	ESI
+	EDI
+	EBP
+	EAX
+	DS
+	ES
+	FS
+	GS
+CONTEXTO HARDWARE:
+	EIP
+	CS
+	PSW/EFLAGS
+	ESP
+	SS
+
 
 WINDOWS:
 
@@ -227,7 +276,7 @@ Por proceso:
 	Cada proceso tiene las siguientes regiones de datos:
 		- Codigo (text) --> Instrucciones ejecutables
 		- Datos inicializados (data) --> Variables globales y estaticas con valor inicial
-		- Dataos no inicializados (bss) --> Variables globales y estaticas que no tienen un valor inicial
+		- Datos no inicializados (bss) --> Variables globales y estaticas que no tienen un valor inicial
 		- Heap (memoria dinámica)
 		- Pila (usuario y kernel)
 
@@ -276,7 +325,7 @@ que contiene la estructura de datos del thread.
 
 Gestion de memoria en ZeOS:
 - El SO debe conocer la @base de la tabla de paginas de cada proceso, en ZeOS se guarda en el PCB.
-- En el registor cr3 se guarda ...
+- En el registro cr3 se guarda la dirección base del directorio (del primer nivel de la tabla de paginas)
 - No tiene un programa para cargar ejecutables en el SO, el codigo de usuario se carga en tiempo de boot.
 - Flujo de accesos a memoria en ZeOS: CR3 >> DIRECTORY >> TABLA
 - Espacio logico de direcciones: 
@@ -326,6 +375,9 @@ Gestion de memoria en ZeOS:
 	 } bits;
 	} page_table_entry;
 
+Si una pagina está en el area de swap hay varias formas de comprobarlo, inicialmente el bit present saldrá a 0, y el OS será
+el encargado mediante la dirección de la pagina o mediante alguna tabla de swap comprobar si está allí on en el disco
+
 PROCESOS:
 
 Proceso: programa en ejecucion. Su definicion engloba todo lo necesario para que un programa se ejecute: ejecucion de secuencia 
@@ -371,8 +423,9 @@ Identificacion de un proceso en ejecución: se le aplica una mascara al puntero 
 Cambio de contexto: Suspender la ejecución del proceso actual y continuar la ejecución de otro proceso “previamente” 
 	suspendido. Pasos:
 		– Guardar contexto ejecución proceso actual
-			• Hay que guardar el contexto hw y como acceder a él: Se guarda el contexto hw en la pila de kernel,
-				y en el pcb la posicion en la pila para acceder a el
+			• Hay que guardar el contexto software y como acceder a él: Se guarda el contexto software en la pila 
+				de kernel, y en el pcb la posicion en la pila para acceder a el. De contexto hardware del 
+				modo kernel solo hace falta guardar esp.
 		– Restaurar contexto ejecución proceso suspendido
 			• Espacio de direcciones: actualizar estructuras mmu
 			• TSS: esp0 tiene que apuntar a la base de la pila de sistema del proceso nuevo
@@ -395,6 +448,10 @@ Cambio de contexto: Suspender la ejecución del proceso actual y continuar la ej
 		- set_cr3(get_Dir((struct task_struct) * t));
 		- current->kernel.esp = (unsigned long *) get_ebp();
 		- set_esp(t->task.kernel_esp);
+
+Depende de como esté implementado, pero para la mayoria de politicas de planificación implementan el task switch de forma que,
+hay una interrupción del temporizador periódica que ya entra al modo kernel y evalúa cuando cambiar, y si se dan las condiciones 
+ya sea por tiempo (round robin) o por prioridades o lo que sea, entonces se cambia.
 
 Creacion de procesos:
 
@@ -425,6 +482,100 @@ fork: crea una copia del proceso que lo llama
 	• Devolver el pid del nuevo proceso creado (0 al hijo)
 
 Ejemplo de codigo de fork:
+
+int sys_fork(void)
+{
+	  struct list_head *lhcurrent = NULL;
+	  union task_union *uchild;
+	  
+	  /* Any free task_struct? */
+	  if (list_empty(&freequeue)) return -ENOMEM;
+	
+	  lhcurrent=list_first(&freequeue);
+	  
+	  list_del(lhcurrent);
+	  
+	  uchild=(union task_union*)list_head_to_task_struct(lhcurrent);
+	  
+	  /* Copy the parent's task struct to child's */
+	  copy_data(current(), uchild, sizeof(union task_union));
+	  
+	  /* new pages dir */
+	  allocate_DIR((struct task_struct*)uchild);
+	  
+	  /* Allocate pages for DATA+STACK */
+	  int new_ph_pag, pag, i;
+	  page_table_entry *process_PT = get_PT(&uchild->task);
+	  for (pag=0; pag<NUM_PAG_DATA; pag++)
+	  {
+	    new_ph_pag=alloc_frame();
+	    if (new_ph_pag!=-1) /* One page allocated */
+	    {
+	      set_ss_pag(process_PT, PAG_LOG_INIT_DATA+pag, new_ph_pag);
+	    }
+	    else /* No more free pages left. Deallocate everything */
+	    {
+	      /* Deallocate allocated pages. Up to pag. */
+	      for (i=0; i<pag; i++)
+	      {
+		free_frame(get_frame(process_PT, PAG_LOG_INIT_DATA+i));
+		del_ss_pag(process_PT, PAG_LOG_INIT_DATA+i);
+	      }
+	      /* Deallocate task_struct */
+	      list_add_tail(lhcurrent, &freequeue);
+	      
+	      /* Return error */
+	      return -EAGAIN; 
+	    }
+	  }
+
+	  /* Copy parent's SYSTEM and CODE to child. */
+	  page_table_entry *parent_PT = get_PT(current());
+	  for (pag=0; pag<NUM_PAG_KERNEL; pag++)
+	  {
+	    set_ss_pag(process_PT, pag, get_frame(parent_PT, pag));
+	  }
+	  for (pag=0; pag<NUM_PAG_CODE; pag++)
+	  {
+	    set_ss_pag(process_PT, PAG_LOG_INIT_CODE+pag, get_frame(parent_PT, PAG_LOG_INIT_CODE+pag));
+	  }
+	  /* Copy parent's DATA to child. We will use TOTAL_PAGES-1 as a temp logical page to map to */
+	  for (pag=NUM_PAG_KERNEL+NUM_PAG_CODE; pag<NUM_PAG_KERNEL+NUM_PAG_CODE+NUM_PAG_DATA; pag++)
+	  {
+	    /* Map one child page to parent's address space. */
+	    set_ss_pag(parent_PT, pag+NUM_PAG_DATA, get_frame(process_PT, pag));
+	    copy_data((void*)(pag<<12), (void*)((pag+NUM_PAG_DATA)<<12), PAGE_SIZE);
+	    del_ss_pag(parent_PT, pag+NUM_PAG_DATA);
+	  }
+	  /* Deny access to the child's memory space */
+	  set_cr3(get_DIR(current()));
+
+	  uchild->task.PID=++global_PID;
+	  uchild->task.state=ST_READY;
+
+	  int register_ebp;		/* frame pointer */
+	  /* Map Parent's ebp to child's stack */
+	  register_ebp = (int) get_ebp();
+	  register_ebp=(register_ebp - (int)current()) + (int)(uchild);
+
+	  uchild->task.register_esp=register_ebp + sizeof(DWord);
+
+	  DWord temp_ebp=*(DWord*)register_ebp;
+	  /* Prepare child stack for context switch */
+	  uchild->task.register_esp-=sizeof(DWord);
+	  *(DWord*)(uchild->task.register_esp)=(DWord)&ret_from_fork;
+	  uchild->task.register_esp-=sizeof(DWord);
+	  *(DWord*)(uchild->task.register_esp)=temp_ebp;
+
+	  /* Set stats to 0 */
+	  init_stats(&(uchild->task.p_stats));
+
+	  /* Queue child process into readyqueue */
+	  uchild->task.state=ST_READY;
+	  list_add_tail(&(uchild->task.list), &readyqueue);
+	  
+	  return uchild->task.PID;
+}
 
 
 Creacion de procesos iniciales:
