@@ -1,0 +1,9 @@
+{
+    "files.associations": {
+        "customfunctions.h": "c",
+        "stdio.h": "c",
+        "stdlib.h": "c",
+        "cyclicscheduler.h": "c",
+        "schedulersfunctions.h": "c"
+    }
+}

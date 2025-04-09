@@ -1,0 +1,48 @@
+
+/*
+void schedulers::EDF() {
+    cout << "Earliest Deadline First" << endl;
+    bool condition = false;
+    float l = 0;
+    for (int i = 0; i < NUMBER_OF_TASKS or condition; ++i) {
+        if (d[i] != t[i]) condition = true;
+        l += ((t[i]-d[i])*(c[i]/t[i]));
+    }
+    
+    if (!condition) { // IS SCHEDULABLE
+        cout << "Is schedulable" << endl;
+        return;
+    }
+
+    l /= (1-UTILIZATION_FACTOR);
+    float mind = l < h ? l : h; // min(l, h)
+
+    vector<int> deadlines;
+    vector<bool> control(NUMBER_OF_TASKS, false);
+    condition = false;
+    int k = 0;
+    float aux;
+    while (!condition) {
+        condition = true;
+        for (int i = 0; i < NUMBER_OF_TASKS; ++i) {
+            if (!control[i]) {
+                condition = false;
+                aux = 0.0;
+                aux = (k*t[i]) + d[i];
+                if (aux < mind) deadlines.push_back(aux);
+                else {
+                    control[i] = true;
+                }
+            }
+        }
+        ++k;
+    }
+
+    for (int i = 0; i < deadlines.size(); ++i) {
+        if (g(0, deadlines[i]) == false) {
+            cout << "NOT SCHEDULABLE" << endl;
+            return; // NOT SCHEDULABLE
+        }
+    }
+    // SCHEDULABLE
+*/

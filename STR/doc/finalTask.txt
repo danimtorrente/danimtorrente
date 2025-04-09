@@ -1,0 +1,12 @@
+- Sistema de monitoreo y control en tiempo real para una smart city. Gestión de semáforos, transporte publico... Decisiones
+	en tiempo real en base a los datos recogidos por los sensores que decidamos.
+- Sistema de seguimiento y gestión de flotas: sistema que permita rastrear vehículos en tiempo real, optimizar rutas y 
+	gestionar incidencias (como accidentes o fallos mecánicos).
+- Sistema de trading algorítmico en tiempo real: sistema que analice datos de mercados financieros en tiempo real y 
+	ejecute operaciones automáticas basadas en estrategias predefinidas. Se podría hacer con: Python (Pandas, NumPy), 
+	APIs de mercados financieros (como Alpha Vantage), y sistemas de colas en tiempo real (Kafka o RabbitMQ).
+- Sistema de control de drones en tiempo real: sistema que permita controlar una flota de drones de manera autónoma, 
+	coordinando sus movimientos y tareas (como entrega de paquetes o inspección de áreas).
+- Plataforma de telemedicina en tiempo real: sistema que permita a los médicos monitorear a pacientes en tiempo real 
+	mediante dispositivos IoT (como monitores de ritmo cardíaco o presión arterial).
+
